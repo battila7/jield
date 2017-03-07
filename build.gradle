@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+description = 'Jield'
+group = 'jield'
+version = '0.1.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+  compile files("${System.properties['java.home']}/../lib/tools.jar")
+}
+
+repositories {
+  mavenCentral()
+}
