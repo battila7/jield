@@ -3,8 +3,10 @@ package jield.apt;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Names;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -20,11 +22,16 @@ import java.util.stream.Stream;
 @SupportedAnnotationTypes("*")
 public final class JieldProcessor extends AbstractProcessor {
     /**
-     * We must use {@code JavacProcessingEnvironment} to obtain a {@link com.sun.tools.javac.util.Context}
-     * instance which can be used to acquire {@link com.sun.tools.javac.tree.TreeMaker} and
-     * {@link com.sun.tools.javac.util.Names} instances.
+     * Provides access to the compiler's nametable. Will be used to craft new names for new identifiers and
+     * get names of the existing ones.
      */
-    private JavacProcessingEnvironment javacProcEnv;
+    private Names names;
+
+    /**
+     * Can be used to create new trees in the AST. We will make use of this class as a factory for our generated
+     * methods.
+     */
+    private TreeMaker treeMaker;
 
     /**
      * Enables us to get the compilation unit of an {@link javax.lang.model.element.Element}. This is necessary
@@ -34,9 +41,17 @@ public final class JieldProcessor extends AbstractProcessor {
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        this.javacProcEnv = (JavacProcessingEnvironment) processingEnv;
+        /*
+         * The ProcessingEnvironment interface lacks a getContext method, so we must get creative and cast it to
+         * a JavacProcessingEnvironment thus destroy the abstraction.
+         */
+        final Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
 
-        this.trees = Trees.instance(javacProcEnv);
+        this.names = Names.instance(context);
+
+        this.treeMaker = TreeMaker.instance(context);
+
+        this.trees = Trees.instance(processingEnv);
 
         super.init(processingEnv);
     }
@@ -44,7 +59,7 @@ public final class JieldProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         /*
-         * Acquire compilation units that should be checked for the @Generator annotation in this round.
+         * Acquire compilation units that should be checked for the presence of the @Generator annotation in this round.
          */
         roundEnv.getRootElements()
                 .stream()
