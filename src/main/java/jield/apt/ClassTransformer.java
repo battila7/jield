@@ -22,12 +22,16 @@ final class ClassTransformer {
 
     private final boolean isInterface;
 
+    private int generatorClassIndex;
+
     ClassTransformer(JCClassDecl classDeclaration, ProcessingContext ctx) {
         this.classDeclaration = Objects.requireNonNull(classDeclaration);
 
         this.ctx = Objects.requireNonNull(ctx);
 
         this.isInterface = Kind.INTERFACE.equals(classDeclaration.getKind());
+
+        this.generatorClassIndex = 0;
     }
 
     /**
@@ -43,6 +47,16 @@ final class ClassTransformer {
 
                 return false;
             }
+
+            /*
+             * Create a new nested class and add it to the definition list of the current class declaration.
+             */
+            GeneratorTransformer transformer =
+                    new GeneratorTransformer(classDeclaration, method, ctx, generatorClassIndex);
+
+            classDeclaration.defs = classDeclaration.defs.append(transformer.transform());
+
+            ++generatorClassIndex;
 
             isTransformationPerformed = true;
         }

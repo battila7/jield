@@ -67,9 +67,11 @@ public final class JieldProcessor extends AbstractProcessor {
             try {
                 transformCompilationUnit(unit);
             } catch (Exception e) {
+                /*
+                 * TODO: Use exception chaining, so all issues will be reported not just the one that
+                 *       was encountered first
+                 */
                 ctx.messager.printMessage(ERROR, e.getMessage());
-
-                return false;
             }
         }
 
