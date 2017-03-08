@@ -8,36 +8,29 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Names;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static javax.tools.Diagnostic.Kind.ERROR;
 
 @SupportedAnnotationTypes("*")
 public final class JieldProcessor extends AbstractProcessor {
-    /**
-     * Provides access to the compiler's nametable. Will be used to craft new names for new identifiers and
-     * get names of the existing ones.
-     */
-    private Names names;
-
-    /**
-     * Can be used to create new trees in the AST. We will make use of this class as a factory for our generated
-     * methods.
-     */
-    private TreeMaker treeMaker;
-
     /**
      * Enables us to get the compilation unit of an {@link javax.lang.model.element.Element}. This is necessary
      * because we want to transform compilation units not just classes. For example we need to add imports.
      */
     private Trees trees;
+
+    private ProcessingContext ctx;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -47,11 +40,10 @@ public final class JieldProcessor extends AbstractProcessor {
          */
         final Context context = ((JavacProcessingEnvironment) processingEnv).getContext();
 
-        this.names = Names.instance(context);
-
-        this.treeMaker = TreeMaker.instance(context);
-
         this.trees = Trees.instance(processingEnv);
+
+        this.ctx = new ProcessingContext(Names.instance(context), TreeMaker.instance(context),
+                processingEnv.getMessager());
 
         super.init(processingEnv);
     }
@@ -61,10 +53,25 @@ public final class JieldProcessor extends AbstractProcessor {
         /*
          * Acquire compilation units that should be checked for the presence of the @Generator annotation in this round.
          */
-        roundEnv.getRootElements()
+        List<JCCompilationUnit> units =
+            roundEnv.getRootElements()
                 .stream()
                 .map(this::resolveCompilationUnit)
-                .flatMap(opt -> opt.map(Stream::of).orElseGet(Stream::empty));
+                .flatMap(opt -> opt.map(Stream::of).orElseGet(Stream::empty))
+                .collect(Collectors.toList());
+
+        /*
+         * Perform transformation on the collected compilation units.
+         */
+        for (JCCompilationUnit unit : units) {
+            try {
+                transformCompilationUnit(unit);
+            } catch (Exception e) {
+                ctx.messager.printMessage(ERROR, e.getMessage());
+
+                return false;
+            }
+        }
 
         /*
          * Enable subsequent processing. Doesn't really matter though because no annotation are claimed
@@ -76,6 +83,19 @@ public final class JieldProcessor extends AbstractProcessor {
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
+    }
+
+    /**
+     * Initiates the transformation of the specified compilation unit. Transformation is only carried out if
+     * the unit has a method with the {@link jield.annotation.Generator} annotation present.
+     * @param compilationUnit the unit to be transformed
+     */
+    private void transformCompilationUnit(JCCompilationUnit compilationUnit) {
+        final JCCompilationUnit unit = Objects.requireNonNull(compilationUnit);
+
+        final CompilationUnitTransformer transformer = new CompilationUnitTransformer(unit, ctx);
+
+        transformer.performTransformation();
     }
 
     /**
