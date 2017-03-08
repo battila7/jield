@@ -5,8 +5,6 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import java.util.Objects;
 
-import static javax.tools.Diagnostic.Kind.ERROR;
-
 /**
  * Class that orchestrates the transformation of compilation units. Compilation units might contain multiple
  * type definitions that can in turn contain multiple generator methods. The type definitions must be transformed
@@ -54,10 +52,20 @@ final class CompilationUnitTransformer {
         }
     }
 
-    private boolean transformClassDeclaration(JCClassDecl jcClassDecl) {
-        return false;
+    /**
+     * Takes a class declared located in the current compilation unit and applies the transformation process to it.
+     * @param classDeclaration the class declaration to be inspected and transformed
+     * @return {@code true} if the class declaration was modified, {@code false} otherwise
+     */
+    private boolean transformClassDeclaration(JCClassDecl classDeclaration) {
+        final ClassTransformer classTransformer = new ClassTransformer(classDeclaration, ctx);
+
+        return classTransformer.performTransformation();
     }
 
+    /**
+     * Adds necessary import statements to the compilation unit importing the generator runtime classes.
+     */
     private void addImportStatements() {
 
     }
