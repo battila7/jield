@@ -16,7 +16,9 @@ final class GeneratorTransformer {
 
     private final ProcessingContext ctx;
 
-    private final int index;
+    private final String className;
+
+
 
     GeneratorTransformer(JCClassDecl enclosingClass, JCMethodDecl originalMethod, ProcessingContext ctx, int index) {
         this.enclosingClass = enclosingClass;
@@ -25,7 +27,7 @@ final class GeneratorTransformer {
 
         this.ctx = ctx;
 
-        this.index = index;
+        this.className = CLASS_NAME_PREFIX + Integer.toString(index);
     }
 
     /**
