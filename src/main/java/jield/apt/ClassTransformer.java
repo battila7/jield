@@ -43,18 +43,15 @@ final class ClassTransformer {
 
     /**
      * Finds generator methods and performs the transformation process on the class declaration.
-     * @return {@code true} if at least one generator method was found and transformed, {@code false} otherwise
      */
-    boolean performTransformation() {
-        boolean isTransformationPerformed = false;
-
+    void performTransformation() {
         for (JCMethodDecl method : findGeneratorMethods()) {
             if (!canBeTransformed(method)) {
                 /*
                  * TODO: throw some exception to indicate that this method cannot be transformed
                  */
 
-                return false;
+                return;
             }
 
             /*
@@ -68,11 +65,7 @@ final class ClassTransformer {
             removeGeneratorAnnotationFromMethod(method);
 
             ++generatorClassIndex;
-
-            isTransformationPerformed = true;
         }
-
-        return isTransformationPerformed;
     }
 
     /**

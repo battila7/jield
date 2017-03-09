@@ -40,21 +40,11 @@ final class CompilationUnitTransformer {
      * Performs the transformation of the compilation unit. Does nothing if no generator method found.
      */
     void performTransformation() {
-        /*
-         * Transform class declarations found in the compilation unit. If no transformation
-         * occurred (because no suitable generator methods were found)
-         */
-        boolean isTransformationPerformed = false;
-
-        for (JCTree tree : compilationUnit.getTypeDecls()) {
-            if (tree instanceof JCClassDecl && transformClassDeclaration((JCClassDecl) tree)) {
-                isTransformationPerformed = true;
-            }
-        }
-
-        if (isTransformationPerformed) {
-            addImportStatements();
-        }
+        compilationUnit.getTypeDecls()
+                .stream()
+                .filter(t -> t instanceof JCClassDecl)
+                .map(t -> (JCClassDecl) t)
+                .forEach(this::transformClassDeclaration);
 
         System.out.println(compilationUnit);
     }
@@ -62,42 +52,10 @@ final class CompilationUnitTransformer {
     /**
      * Takes a class declared located in the current compilation unit and applies the transformation process to it.
      * @param classDeclaration the class declaration to be inspected and transformed
-     * @return {@code true} if the class declaration was modified, {@code false} otherwise
      */
-    private boolean transformClassDeclaration(JCClassDecl classDeclaration) {
+    private void transformClassDeclaration(JCClassDecl classDeclaration) {
         final ClassTransformer classTransformer = new ClassTransformer(classDeclaration, ctx);
 
-        return classTransformer.performTransformation();
-    }
-
-    /**
-     * Adds necessary import statements to the compilation unit importing the generator runtime classes.
-     */
-    private void addImportStatements() {
-        final JCIdent jieldPackage =
-                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JIELD));
-
-        final JCFieldAccess runtimeAccess =
-                ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
-
-        final JCFieldAccess baseGenAccess =
-                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BASE_GENERATOR));
-
-        final JCFieldAccess bounceAccess =
-                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BOUNCE));
-
-        final JCFieldAccess genStateAccess =
-                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.GENERATOR_STATE));
-
-        final JCFieldAccess contAccess =
-                ctx.treeMaker.Select(bounceAccess, ctx.names.fromString(Identifiers.CONT_METHOD));
-
-        final List<JCTree> imports =
-                Arrays.asList(ctx.treeMaker.Import(baseGenAccess, false),
-                      ctx.treeMaker.Import(bounceAccess, false),
-                      ctx.treeMaker.Import(genStateAccess, false),
-                      ctx.treeMaker.Import(contAccess, true));
-
-        compilationUnit.defs = com.sun.tools.javac.util.List.from(imports).appendList(compilationUnit.defs);
+        classTransformer.performTransformation();
     }
 }

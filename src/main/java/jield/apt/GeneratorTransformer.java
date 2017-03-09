@@ -15,25 +15,22 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /*
  * Class that does the heavy-lifting of the transformation process. Takes a method and its enclosing class
   * and creates a nested generator class and rewrites the original method.
  */
 final class GeneratorTransformer {
-    private static final String CLASS_NAME_PREFIX = "$GeneratorImpl";
-
-    private static final String METHOD_NAME_PREFIX = "$";
+    private static final String CLASS_NAME_PREFIX = "$GeneratorImpl_";
 
     private static final String CONTINUATION_PARAM = "k";
 
     private static final String GENERATOR_VARIABLE = "$generator";
 
     private static final long NO_MODIFIERS = 0L;
+
+    private final String methodNamePrefix;
 
     private final JCClassDecl enclosingClass;
 
@@ -60,7 +57,9 @@ final class GeneratorTransformer {
 
         this.ctx = ctx;
 
-        this.className = CLASS_NAME_PREFIX + Integer.toString(index);
+        this.methodNamePrefix = generateMethodNamePrefix();
+
+        this.className = generateClassName(index);
 
         this.states = new HashMap<>();
 
@@ -73,6 +72,24 @@ final class GeneratorTransformer {
          * one) type parameter because of previous checks.
          */
         this.generatedType = ((JCTypeApply) originalMethod.getReturnType()).arguments.get(0);
+    }
+
+    private String generateMethodNamePrefix() {
+        Random rand = new Random();
+
+        return "$" + originalMethod.getName() + "_" + Integer.toString(rand.nextInt()) + "_";
+    }
+
+    private String generateClassName(int index) {
+        Random rand = new Random();
+
+        String name = CLASS_NAME_PREFIX + Integer.toString(index);
+
+        name += originalMethod.getName().toString();
+
+        name += Integer.toString(rand.nextInt());
+
+        return name;
     }
 
     /**
@@ -103,8 +120,17 @@ final class GeneratorTransformer {
      * </pre>
      */
     private void finishEndState() {
+        final JCIdent jieldPackage =
+                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JIELD));
+
+        final JCFieldAccess runtimeAccess =
+                ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
+
+        final JCFieldAccess genStateAcces =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.GENERATOR_STATE));
+
         final JCExpression selectEmpty =
-            ctx.treeMaker.Select(ctx.treeMaker.Ident(ctx.name(Identifiers.GENERATOR_STATE)), ctx.name(Identifiers.EMPTY_METHOD));
+            ctx.treeMaker.Select(genStateAcces, ctx.name(Identifiers.EMPTY_METHOD));
 
         final JCMethodInvocation invokeEmpty =
             ctx.treeMaker.Apply(List.of(generatedType), selectEmpty.setType(Type.noType), List.nil());
@@ -117,8 +143,14 @@ final class GeneratorTransformer {
 
         final JCLambda lambda = ctx.treeMaker.Lambda(List.nil(), invokeApply);
 
+        final JCFieldAccess bounceAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BOUNCE));
+
+        final JCFieldAccess contAccess =
+                ctx.treeMaker.Select(bounceAccess, ctx.names.fromString(Identifiers.CONT_METHOD));
+
         final JCMethodInvocation invokeCont =
-            ctx.treeMaker.App(ctx.treeMaker.Ident(ctx.name(Identifiers.CONT_METHOD)).setType(Type.noType), List.of(lambda));
+            ctx.treeMaker.App(contAccess.setType(Type.noType), List.of(lambda));
 
         final JCReturn ret = ctx.treeMaker.Return(invokeCont);
 
@@ -220,8 +252,17 @@ final class GeneratorTransformer {
      * @return a new method declaration consisting of the state's statements
      */
     private JCMethodDecl stateIntoMethod(int index, java.util.List<JCStatement> statements) {
+        final JCIdent jieldPackage =
+                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JIELD));
+
+        final JCFieldAccess runtimeAccess =
+                ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
+
+        final JCFieldAccess bounceAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BOUNCE));
+
         final JCExpression returnType =
-            ctx.treeMaker.TypeApply(ctx.treeMaker.Ident(ctx.name(Identifiers.BOUNCE)), List.of(generatedType));
+            ctx.treeMaker.TypeApply(bounceAccess, List.of(generatedType));
 
         /*
          * Black magic and witchcraft ahead:
@@ -231,8 +272,14 @@ final class GeneratorTransformer {
          *
          * There are some suspicious nulls, but they cause no harm.
          */
+        final Symbol.PackageSymbol jieldPkgSymbol =
+                new Symbol.PackageSymbol(ctx.names.fromString(Identifiers.JIELD), null);
+
+        final Symbol.PackageSymbol runtimePkgSymbol =
+                new Symbol.PackageSymbol(ctx.names.fromString(Identifiers.RUNTIME), jieldPkgSymbol);
+
         final Symbol.TypeSymbol generatorStateSymbol =
-            new ClassSymbol(NO_MODIFIERS, ctx.name(Identifiers.GENERATOR_STATE), null);
+            new ClassSymbol(NO_MODIFIERS, ctx.name(Identifiers.GENERATOR_STATE), runtimePkgSymbol);
 
         final Type.ClassType generatorStateType =
             new Type.ClassType(Type.noType, List.of(generatedType.type), generatorStateSymbol);
@@ -269,8 +316,17 @@ final class GeneratorTransformer {
             ctx.treeMaker
                 .Reference(MemberReferenceTree.ReferenceMode.INVOKE, methodName(0), ctx.treeMaker.Ident(ctx.names._this), List.nil());
 
+        final JCIdent jieldPackage =
+                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JIELD));
+
+        final JCFieldAccess runtimeAccess =
+                ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
+
+        final JCFieldAccess baseGenAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BASE_GENERATOR));
+
         final JCExpression selectStartingAt =
-            ctx.treeMaker.Select(ctx.treeMaker.Ident(ctx.name(Identifiers.BASE_GENERATOR)), ctx.name(Identifiers.STARTING_AT_METHOD));
+            ctx.treeMaker.Select(baseGenAccess, ctx.name(Identifiers.STARTING_AT_METHOD));
 
         final JCExpression selectStream =
             ctx.treeMaker.Select(ctx.treeMaker.App(selectStartingAt.setType(Type.noType), List.of(startStateRef)),
@@ -657,8 +713,20 @@ final class GeneratorTransformer {
 
         final List<JCExpression> bounceParams = returnExpr.isPresent() ? List.of(lambda, returnExpr.get()) : List.of(lambda);
 
+        final JCIdent jieldPackage =
+                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JIELD));
+
+        final JCFieldAccess runtimeAccess =
+                ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
+
+        final JCFieldAccess bounceAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BOUNCE));
+
+        final JCFieldAccess contAccess =
+                ctx.treeMaker.Select(bounceAccess, ctx.names.fromString(Identifiers.CONT_METHOD));
+
         final JCMethodInvocation bounceInvocation =
-            ctx.treeMaker.App(ctx.treeMaker.Ident(ctx.name(Identifiers.CONT_METHOD)).setType(Type.noType),
+            ctx.treeMaker.App(contAccess.setType(Type.noType),
                 bounceParams);
 
         return ctx.treeMaker.Return(bounceInvocation);
@@ -682,7 +750,7 @@ final class GeneratorTransformer {
      * @return the {@code Name} of the method
      */
     private Name methodName(int state) {
-        return ctx.name(METHOD_NAME_PREFIX + Integer.toString(state));
+        return ctx.name(methodNamePrefix + Integer.toString(state));
     }
 
     /**
