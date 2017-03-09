@@ -312,7 +312,7 @@ final class GeneratorTransformer {
         if (statement instanceof JCBlock) {
             transformBlock((JCBlock) statement, current, conts);
         } else if (statement instanceof JCVariableDecl) {
-            // transformVariableDeclaration((JCVariableDecl) statement, current, conts);
+            transformVariableDeclaration((JCVariableDecl) statement, current, conts);
         } else if (statement instanceof JCReturn) {
             transformYield((JCReturn) statement, current, conts);
         } else if (statement instanceof JCForLoop) {
@@ -541,6 +541,12 @@ final class GeneratorTransformer {
         } else {
             states.get(current).add(yield(elseState, Optional.empty()));
         }
+    }
+
+    private void transformVariableDeclaration(JCVariableDecl declaration, int current, Continuations conts) {
+        addVariableAsField(declaration);
+
+        states.get(current).add(convertVariableDeclarationToAssignment(declaration));
     }
 
     /*
