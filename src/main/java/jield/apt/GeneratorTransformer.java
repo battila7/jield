@@ -24,7 +24,7 @@ import java.util.*;
 final class GeneratorTransformer {
     private static final String CLASS_NAME_PREFIX = "$GeneratorImpl_";
 
-    private static final String CONTINUATION_PARAM = "k";
+    private static final String CONTINUATION_PARAM = "$_contParam";
 
     private static final String GENERATOR_VARIABLE = "$generator";
 
@@ -42,7 +42,9 @@ final class GeneratorTransformer {
 
     private final Map<Integer, java.util.List<JCStatement>> states;
 
-    private final java.util.List<JCVariableDecl> fields;
+    private final Map<String, JCVariableDecl> fields;
+
+    private final java.util.List<JCTree> classDefs;
 
     private final JCExpression generatedType;
 
@@ -63,7 +65,9 @@ final class GeneratorTransformer {
 
         this.states = new HashMap<>();
 
-        this.fields = new ArrayList<>();
+        this.fields = new HashMap<>();
+
+        this.classDefs = new ArrayList<>();
 
         this.maxState = -1;
 
@@ -126,11 +130,11 @@ final class GeneratorTransformer {
         final JCFieldAccess runtimeAccess =
                 ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
 
-        final JCFieldAccess genStateAcces =
+        final JCFieldAccess genStateAccess =
                 ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.GENERATOR_STATE));
 
         final JCExpression selectEmpty =
-            ctx.treeMaker.Select(genStateAcces, ctx.name(Identifiers.EMPTY_METHOD));
+            ctx.treeMaker.Select(genStateAccess, ctx.name(Identifiers.EMPTY_METHOD));
 
         final JCMethodInvocation invokeEmpty =
             ctx.treeMaker.Apply(List.of(generatedType), selectEmpty.setType(Type.noType), List.nil());
@@ -177,7 +181,9 @@ final class GeneratorTransformer {
 
         final ListBuffer<JCTree> defs = new ListBuffer<>();
 
-        defs.addAll(fields);
+        defs.addAll(fields.values());
+
+        defs.addAll(classDefs);
 
         defs.add(createStreamMethod());
 
@@ -223,11 +229,9 @@ final class GeneratorTransformer {
 
         stats.add(generatorAssign);
 
-        int i = 0;
-
         for (JCVariableDecl param : originalMethod.getParameters()) {
             final JCFieldAccess fieldAccess =
-                ctx.treeMaker.Select(ctx.treeMaker.Ident(generatorName), fields.get(i++).getName());
+                ctx.treeMaker.Select(ctx.treeMaker.Ident(generatorName), param.getName());
 
             final JCAssign assign = ctx.treeMaker.Assign(fieldAccess, ctx.treeMaker.Ident(param.sym));
 
@@ -356,7 +360,7 @@ final class GeneratorTransformer {
                 declaration.vartype,
                 null);
 
-            fields.add(decl);
+            fields.put(decl.getName().toString(), decl);
         }
     }
 
@@ -368,7 +372,7 @@ final class GeneratorTransformer {
         if (statement instanceof JCBlock) {
             transformBlock((JCBlock) statement, current, cont);
         } else if (statement instanceof JCVariableDecl) {
-            transformVariableDeclaration((JCVariableDecl) statement, current, cont);
+            return; // handled by the block
         } else if (statement instanceof JCReturn) {
             transformYield((JCReturn) statement, current, cont);
         } else if (statement instanceof JCForLoop) {
@@ -385,12 +389,18 @@ final class GeneratorTransformer {
             transformContinue((JCContinue) statement, current, cont);
         } else if (statement instanceof JCLabeledStatement) {
             transformLabeledStatement((JCLabeledStatement) statement, current, cont);
+        } else if (statement instanceof JCClassDecl) {
+            RenamingVisitor.visit(statement, cont, ctx.names);
+
+            classDefs.add(statement);
         } else {
-            transformNoop(statement, current);
+            transformNoop(statement, current, cont);
         }
     }
 
-    private void transformNoop(JCStatement statement, int current) {
+    private void transformNoop(JCStatement statement, int current, Continuation cont) {
+        RenamingVisitor.visit(statement, cont, ctx.names);
+
         states.get(current).add(statement);
     }
 
@@ -422,6 +432,12 @@ final class GeneratorTransformer {
      */
     private void transformForLoop(JCForLoop loop, int current, Continuation cont) {
         /*
+         * Going to be reassigned a few times because of break/continue continuations and
+         * renamings.
+         */
+        Continuation c = cont;
+
+        /*
          * Close the "current" state. By closing the current state we can ensure that we have
          * a completely empty and fresh method. This is not necessary but is a good practice.
          */
@@ -440,9 +456,10 @@ final class GeneratorTransformer {
             if (!(statement instanceof JCVariableDecl)) {
                 initStatements.add(statement);
             } else {
-                addVariableAsField((JCVariableDecl) statement);
+                c = addVariableAsField((JCVariableDecl) statement, c);
 
-                initStatements.add(convertVariableDeclarationToAssignment((JCVariableDecl) statement));
+                convertVariableDeclarationToAssignment((JCVariableDecl) statement, c)
+                    .ifPresent(initStatements::add);
             }
         }
 
@@ -467,6 +484,8 @@ final class GeneratorTransformer {
 
         if (loop.getCondition() != null) {
             cond = loop.getCondition();
+
+            RenamingVisitor.visit(cond, c, ctx.names);
         } else {
             cond = ctx.treeMaker.Literal(Boolean.TRUE);
         }
@@ -477,7 +496,7 @@ final class GeneratorTransformer {
 
         final int updateState = newState();
 
-        condStatements.add(yield(cont.getNextCont(), Optional.empty()));
+        condStatements.add(yield(c.getNextCont(), Optional.empty()));
 
         /*
          * Place the original update stuff into the update state which
@@ -485,7 +504,12 @@ final class GeneratorTransformer {
          */
         final java.util.List<JCStatement> updateStatements = states.get(updateState);
 
-        updateStatements.addAll(loop.getUpdate());
+        for (JCExpressionStatement expressionStatement : loop.getUpdate()) {
+            updateStatements.add(expressionStatement);
+
+            RenamingVisitor.visit(expressionStatement, c, ctx.names);
+        }
+
 
         updateStatements.add(yield(conditionState, Optional.empty()));
 
@@ -495,8 +519,8 @@ final class GeneratorTransformer {
          * It's important to note that the continuation of the created states
          * will be the update state.
          */
-        Continuation c = cont.nextCont(updateState)
-                .breakCont(NO_LABEL, cont.getNextCont())
+        c = c.nextCont(updateState)
+                .breakCont(NO_LABEL, c.getNextCont())
                 .continueCont(NO_LABEL, updateState);
 
         for (String label : c.getLabels()) {
@@ -528,6 +552,8 @@ final class GeneratorTransformer {
 
         if (loop.getCondition() != null) {
             cond = loop.getCondition();
+
+            RenamingVisitor.visit(cond, cont, ctx.names);
         } else {
             cond = ctx.treeMaker.Literal(Boolean.TRUE);
         }
@@ -571,6 +597,8 @@ final class GeneratorTransformer {
 
         if (loop.getCondition() != null) {
             cond = loop.getCondition();
+
+            RenamingVisitor.visit(cond, cont, ctx.names);
         } else {
             cond = ctx.treeMaker.Literal(Boolean.TRUE);
         }
@@ -604,6 +632,8 @@ final class GeneratorTransformer {
 
     private void transformIf(JCIf statement, int current, Continuation cont) {
         final int thenState = newState();
+
+        RenamingVisitor.visit(statement.getCondition(), cont, ctx.names);
 
         transformStatement(statement.getThenStatement(), thenState, cont.label(NO_LABEL));
 
@@ -644,16 +674,12 @@ final class GeneratorTransformer {
         }
     }
 
-    private void transformVariableDeclaration(JCVariableDecl declaration, int current, Continuation cont) {
-        addVariableAsField(declaration);
-
-        states.get(current).add(convertVariableDeclarationToAssignment(declaration));
-    }
-
     /*
      * Transform a block by passing all of its statements to other transformers.
      */
     private void transformBlock(JCBlock block, int current, Continuation cont) {
+        Continuation c = cont;
+
         /*
          * Create an empty continuation state for child statements.
          */
@@ -666,7 +692,16 @@ final class GeneratorTransformer {
         int childCurrent = current;
 
         for (JCStatement statement : block.getStatements()) {
-            transformStatement(statement, childCurrent, cont.nextCont(childContinuation).label(NO_LABEL));
+            if (statement instanceof JCVariableDecl) {
+                c = addVariableAsField((JCVariableDecl) statement, c);
+
+                convertVariableDeclarationToAssignment((JCVariableDecl) statement, c)
+                    .ifPresent(s -> states.get(current).add(s));
+
+                RenamingVisitor.visit(statement, c, ctx.names);
+            } else {
+                transformStatement(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
+            }
 
             /*
              * We gave the child statement a state and it exhausted it with a yield.
@@ -686,16 +721,18 @@ final class GeneratorTransformer {
          * than sorry.
          */
         if (!isStateReturns(childCurrent)) {
-            states.get(childCurrent).add(yield(cont.getNextCont(), Optional.empty()));
+            states.get(childCurrent).add(yield(c.getNextCont(), Optional.empty()));
         }
 
         /*
          * Connect the inner flow to the flow we've received as the continuation.
          */
-        states.get(childContinuation).add(yield(cont.getNextCont(), Optional.empty()));
+        states.get(childContinuation).add(yield(c.getNextCont(), Optional.empty()));
     }
 
     private void transformYield(JCReturn ret, int current, Continuation cont) {
+        RenamingVisitor.visit(ret, cont, ctx.names);
+
         states.get(current).add(yield(cont.getNextCont(), Optional.of(ret.getExpression())));
     }
 
@@ -779,20 +816,25 @@ final class GeneratorTransformer {
         return (last instanceof JCBreak) || (last instanceof JCReturn);
     }
 
-    /**
+    /*
      * Creates a field corresponding to the passed local variable declaration.
-     *
-     * TODO: Renaming if necessary
-     * @param localVariableDecl the declaration to be turned into a field
      */
-    private void addVariableAsField(JCVariableDecl localVariableDecl) {
+    private Continuation addVariableAsField(JCVariableDecl localVariableDecl, Continuation cont) {
         final JCModifiers mods = ctx.treeMaker.Modifiers(Flags.PRIVATE);
 
-        final Name name = localVariableDecl.getName();
+        String newName = localVariableDecl.getName().toString();
+
+        while (fields.containsKey(newName)) {
+            newName += "$";
+        }
+
+        final Name name = ctx.names.fromString(newName);
 
         final JCExpression variableType = localVariableDecl.vartype;
 
-        fields.add(ctx.treeMaker.VarDef(mods, name, variableType, null));
+        fields.put(name.toString(), ctx.treeMaker.VarDef(mods, name, variableType, null));
+
+        return cont.rename(localVariableDecl.getName().toString(), newName);
     }
 
     /**
@@ -800,11 +842,15 @@ final class GeneratorTransformer {
      * @param declaration the declaration
      * @return a new assignment statement
      */
-    private JCStatement convertVariableDeclarationToAssignment(JCVariableDecl declaration) {
-        final Name name = declaration.getName();
+    private Optional<JCStatement> convertVariableDeclarationToAssignment(JCVariableDecl declaration, Continuation cont) {
+        if (declaration.getInitializer() == null) {
+            return Optional.empty();
+        }
+
+        final Name name = ctx.names.fromString(cont.nameOf(declaration.getName().toString()));
 
         final JCExpression nameExpression = ctx.treeMaker.Ident(name);
 
-        return ctx.treeMaker.Exec(ctx.treeMaker.Assign(nameExpression, declaration.getInitializer()));
+        return Optional.of(ctx.treeMaker.Exec(ctx.treeMaker.Assign(nameExpression, declaration.getInitializer())));
     }
 }
