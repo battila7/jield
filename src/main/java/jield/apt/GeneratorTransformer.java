@@ -2,7 +2,6 @@ package jield.apt;
 
 import static com.sun.source.tree.Tree.Kind.INTERFACE;
 import static javax.lang.model.element.Modifier.STATIC;
-import static jield.apt.Continuations.proceedTo;
 
 import com.sun.source.tree.MemberReferenceTree;
 import com.sun.tools.javac.code.Flags;
@@ -87,7 +86,7 @@ final class GeneratorTransformer {
 
         generateParameterFields();
 
-        transformBlock(originalMethod.getBody(), startState, proceedTo(endState));
+        transformBlock(originalMethod.getBody(), startState, Continuation.empty().nextCont(endState));
 
         finishEndState();
 
@@ -308,21 +307,21 @@ final class GeneratorTransformer {
      * Handles some kind of visitor logic. Determines the specific type of the passed statement
      * and calls the appropriate handler. Should be replaced with a more elegant solution.
      */
-    private void transformStatement(JCStatement statement, int current, Continuations conts) {
+    private void transformStatement(JCStatement statement, int current, Continuation cont) {
         if (statement instanceof JCBlock) {
-            transformBlock((JCBlock) statement, current, conts);
+            transformBlock((JCBlock) statement, current, cont);
         } else if (statement instanceof JCVariableDecl) {
-            transformVariableDeclaration((JCVariableDecl) statement, current, conts);
+            transformVariableDeclaration((JCVariableDecl) statement, current, cont);
         } else if (statement instanceof JCReturn) {
-            transformYield((JCReturn) statement, current, conts);
+            transformYield((JCReturn) statement, current, cont);
         } else if (statement instanceof JCForLoop) {
-            transformForLoop((JCForLoop) statement, current, conts);
+            transformForLoop((JCForLoop) statement, current, cont);
         } else if (statement instanceof JCWhileLoop) {
-            transformWhileLoop((JCWhileLoop) statement, current, conts);
+            transformWhileLoop((JCWhileLoop) statement, current, cont);
         } else if (statement instanceof JCDoWhileLoop) {
-            transformDoWhileLoop((JCDoWhileLoop) statement, current, conts);
+            transformDoWhileLoop((JCDoWhileLoop) statement, current, cont);
         } else if (statement instanceof JCIf) {
-            transformIf((JCIf) statement, current, conts);
+            transformIf((JCIf) statement, current, cont);
         } else {
             // transformNoop(statement, current);
         }
@@ -332,7 +331,7 @@ final class GeneratorTransformer {
      * Transforms a for loop into recursion (that's not that obvious) and then into separate
      * methods so that it can be used in CPS.
      */
-    private void transformForLoop(JCForLoop loop, int current, Continuations conts) {
+    private void transformForLoop(JCForLoop loop, int current, Continuation cont) {
         /*
          * Close the "current" state. By closing the current state we can ensure that we have
          * a completely empty and fresh method. This is not necessary but is a good practice.
@@ -389,7 +388,7 @@ final class GeneratorTransformer {
 
         final int updateState = newState();
 
-        condStatements.add(yield(conts.getNext(), Optional.empty()));
+        condStatements.add(yield(cont.getNextCont(), Optional.empty()));
 
         /*
          * Place the original update stuff into the update state which
@@ -410,10 +409,10 @@ final class GeneratorTransformer {
          * TODO: Labels
          */
         transformStatement(loop.getStatement(), bodyState,
-            conts.next(updateState).addBreak(null, conts.getNext()).addContinue(null, updateState));
+            cont.nextCont(updateState).breakCont(null, cont.getNextCont()));
     }
 
-    private void transformWhileLoop(JCWhileLoop loop, int current, Continuations conts) {
+    private void transformWhileLoop(JCWhileLoop loop, int current, Continuation cont) {
         /*
          * Close the "current" state.
          */
@@ -443,16 +442,16 @@ final class GeneratorTransformer {
 
         condStatements.add(conditional);
 
-        condStatements.add(yield(conts.getNext(), Optional.empty()));
+        condStatements.add(yield(cont.getNextCont(), Optional.empty()));
 
         /*
          * TODO: Labels
          */
         transformStatement(loop.getStatement(), bodyState,
-                conts.next(condState).addBreak(null, conts.getNext()).addContinue(null, condState));
+                cont.nextCont(condState).breakCont(null, cont.getNextCont()));
     }
 
-    private void transformDoWhileLoop(JCDoWhileLoop loop, int current, Continuations conts) {
+    private void transformDoWhileLoop(JCDoWhileLoop loop, int current, Continuation cont) {
         /*
          * Close the "current" state.
          */
@@ -482,13 +481,13 @@ final class GeneratorTransformer {
 
         condStatements.add(conditional);
 
-        condStatements.add(yield(conts.getNext(), Optional.empty()));
+        condStatements.add(yield(cont.getNextCont(), Optional.empty()));
 
         /*
          * TODO: Labels
          */
         transformStatement(loop.getStatement(), bodyState,
-                conts.next(condState).addBreak(null, conts.getNext()).addContinue(null, condState));
+                cont.nextCont(condState).breakCont(null, cont.getNextCont()));
     }
 
     private boolean hasUnconditionalElse(JCIf statement) {
@@ -501,10 +500,10 @@ final class GeneratorTransformer {
         }
     }
 
-    private void transformIf(JCIf statement, int current, Continuations conts) {
+    private void transformIf(JCIf statement, int current, Continuation cont) {
         final int thenState = newState();
 
-        transformStatement(statement.getThenStatement(), thenState, conts);
+        transformStatement(statement.getThenStatement(), thenState, cont);
 
         JCStatement elsePart = null;
 
@@ -515,7 +514,7 @@ final class GeneratorTransformer {
         if (statement.getElseStatement() != null) {
             elseState = newState();
 
-            transformStatement(statement.getElseStatement(), elseState, conts);
+            transformStatement(statement.getElseStatement(), elseState, cont);
 
             if (!unconditionalElse) {
                 final ListBuffer<JCStatement> elseStatements = new ListBuffer<>();
@@ -537,13 +536,13 @@ final class GeneratorTransformer {
         states.get(current).add(newIf);
 
         if (!unconditionalElse) {
-            states.get(current).add(yield(conts.getNext(), Optional.empty()));
+            states.get(current).add(yield(cont.getNextCont(), Optional.empty()));
         } else {
             states.get(current).add(yield(elseState, Optional.empty()));
         }
     }
 
-    private void transformVariableDeclaration(JCVariableDecl declaration, int current, Continuations conts) {
+    private void transformVariableDeclaration(JCVariableDecl declaration, int current, Continuation cont) {
         addVariableAsField(declaration);
 
         states.get(current).add(convertVariableDeclarationToAssignment(declaration));
@@ -552,7 +551,7 @@ final class GeneratorTransformer {
     /*
      * Transform a block by passing all of its statements to other transformers.
      */
-    private void transformBlock(JCBlock block, int current, Continuations conts) {
+    private void transformBlock(JCBlock block, int current, Continuation cont) {
         /*
          * Create an empty continuation state for child statements.
          */
@@ -565,7 +564,7 @@ final class GeneratorTransformer {
         int childCurrent = current;
 
         for (JCStatement statement : block.getStatements()) {
-            transformStatement(statement, childCurrent, conts.next(childContinuation));
+            transformStatement(statement, childCurrent, cont.nextCont(childContinuation));
 
             /*
              * We gave the child statement a state and it exhausted it with a yield.
@@ -585,17 +584,17 @@ final class GeneratorTransformer {
          * than sorry.
          */
         if (!isStateReturns(childCurrent)) {
-            states.get(childCurrent).add(yield(conts.getNext(), Optional.empty()));
+            states.get(childCurrent).add(yield(cont.getNextCont(), Optional.empty()));
         }
 
         /*
          * Connect the inner flow to the flow we've received as the continuation.
          */
-        states.get(childContinuation).add(yield(conts.getNext(), Optional.empty()));
+        states.get(childContinuation).add(yield(cont.getNextCont(), Optional.empty()));
     }
 
-    private void transformYield(JCReturn ret, int current, Continuations conts) {
-        states.get(current).add(yield(conts.getNext(), Optional.of(ret.getExpression())));
+    private void transformYield(JCReturn ret, int current, Continuation cont) {
+        states.get(current).add(yield(cont.getNextCont(), Optional.of(ret.getExpression())));
     }
 
     /*
