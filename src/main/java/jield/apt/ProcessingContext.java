@@ -1,6 +1,7 @@
 package jield.apt;
 
 import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
 import javax.annotation.processing.Messager;
@@ -36,5 +37,9 @@ final class ProcessingContext {
         this.treeMaker = Objects.requireNonNull(treeMaker);
 
         this.messager = Objects.requireNonNull(messager);
+    }
+
+    Name name(String s) {
+        return names.fromString(s);
     }
 }

@@ -64,15 +64,18 @@ public final class JieldProcessor extends AbstractProcessor {
          * Perform transformation on the collected compilation units.
          */
         for (JCCompilationUnit unit : units) {
+            transformCompilationUnit(unit);
+
+            /*
             try {
                 transformCompilationUnit(unit);
             } catch (Exception e) {
-                /*
+                *//*
                  * TODO: Use exception chaining, so all issues will be reported not just the one that
                  *       was encountered first
-                 */
-                ctx.messager.printMessage(ERROR, e.getMessage());
-            }
+                 *//*
+                //ctx.messager.printMessage(ERROR, e.getMessage());
+            }*/
         }
 
         /*

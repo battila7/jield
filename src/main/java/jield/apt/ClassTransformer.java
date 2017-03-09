@@ -1,10 +1,13 @@
 package jield.apt;
 
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.util.ListBuffer;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static com.sun.tools.javac.tree.JCTree.*;
 import static java.util.stream.Collectors.toList;
@@ -14,14 +17,18 @@ import static java.util.stream.Collectors.toList;
  * process.
  */
 final class ClassTransformer {
-    private static final String GENERATOR = "Generator";
-
     private final JCClassDecl classDeclaration;
 
     private final ProcessingContext ctx;
 
+    /**
+     * {@code true} if the currently transformed class declaration is an interface.
+     */
     private final boolean isInterface;
 
+    /**
+     * Counter used to add an index suffix to nested generator classes in order to prevent name clashes.
+     */
     private int generatorClassIndex;
 
     ClassTransformer(JCClassDecl classDeclaration, ProcessingContext ctx) {
@@ -43,7 +50,9 @@ final class ClassTransformer {
 
         for (JCMethodDecl method : findGeneratorMethods()) {
             if (!canBeTransformed(method)) {
-                // throw some exception that this method cannot be transformed
+                /*
+                 * TODO: throw some exception to indicate that this method cannot be transformed
+                 */
 
                 return false;
             }
@@ -51,10 +60,12 @@ final class ClassTransformer {
             /*
              * Create a new nested class and add it to the definition list of the current class declaration.
              */
-            GeneratorTransformer transformer =
+            final GeneratorTransformer transformer =
                     new GeneratorTransformer(classDeclaration, method, ctx, generatorClassIndex);
 
             classDeclaration.defs = classDeclaration.defs.append(transformer.transform());
+
+            removeGeneratorAnnotationFromMethod(method);
 
             ++generatorClassIndex;
 
@@ -62,6 +73,23 @@ final class ClassTransformer {
         }
 
         return isTransformationPerformed;
+    }
+
+    /**
+     * Removes the {@link jield.annotation.Generator} annotation from the specified method declaration. This
+     * prevents annotation processing to transform the same method twice. All other annotations will be preserved.
+     * @param method the method from which the annotation should be removed
+     */
+    private void removeGeneratorAnnotationFromMethod(JCMethodDecl method) {
+        final ListBuffer<JCAnnotation> keptAnnotations = new ListBuffer<>();
+
+        for (JCAnnotation annotation : method.getModifiers().annotations) {
+            if (!isGeneratorAnnotation(annotation)) {
+                keptAnnotations.add(annotation);
+            }
+        }
+
+        method.getModifiers().annotations = keptAnnotations.toList();
     }
 
     /**
@@ -102,16 +130,14 @@ final class ClassTransformer {
     }
 
     /**
-     * Checks if the method's return type is {@link java.util.stream.Stream}.
+     * Checks if the method's return type is {@link java.util.stream.Stream} and it has a type parameter.
      * @param method the method to be checked
      * @return whether the method's return type is correct
      */
     private boolean isReturnStream(JCMethodDecl method) {
-        /*
-         * TODO: Check if the return type is java.util.stream.Stream
-         */
+        final boolean isStream = Stream.class.getName().equals(method.getReturnType().type.tsym.toString());
 
-        return true;
+        return isStream && ((Type.ClassType) method.getReturnType().type).typarams_field.length() == 1;
     }
 
     /**
@@ -134,7 +160,8 @@ final class ClassTransformer {
     private boolean hasGeneratorAnnotation(JCMethodDecl method) {
         final JCModifiers modifiers = method.getModifiers();
 
-        return modifiers.getAnnotations().stream()
+        return modifiers.getAnnotations()
+                .stream()
                 .anyMatch(this::isGeneratorAnnotation);
     }
 
@@ -148,6 +175,6 @@ final class ClassTransformer {
 
         final String identifierName = identifier.getName().toString();
 
-        return GENERATOR.equals(identifierName);
+        return Identifiers.GENERATOR_ANNOTATION.equals(identifierName);
     }
 }

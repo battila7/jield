@@ -3,6 +3,11 @@ package jield.apt;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -50,6 +55,8 @@ final class CompilationUnitTransformer {
         if (isTransformationPerformed) {
             addImportStatements();
         }
+
+        System.out.println(compilationUnit);
     }
 
     /**
@@ -67,6 +74,30 @@ final class CompilationUnitTransformer {
      * Adds necessary import statements to the compilation unit importing the generator runtime classes.
      */
     private void addImportStatements() {
+        final JCIdent jieldPackage =
+                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JIELD));
 
+        final JCFieldAccess runtimeAccess =
+                ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
+
+        final JCFieldAccess baseGenAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BASE_GENERATOR));
+
+        final JCFieldAccess bounceAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.BOUNCE));
+
+        final JCFieldAccess genStateAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.GENERATOR_STATE));
+
+        final JCFieldAccess contAccess =
+                ctx.treeMaker.Select(bounceAccess, ctx.names.fromString(Identifiers.CONT_METHOD));
+
+        final List<JCTree> imports =
+                Arrays.asList(ctx.treeMaker.Import(baseGenAccess, false),
+                      ctx.treeMaker.Import(bounceAccess, false),
+                      ctx.treeMaker.Import(genStateAccess, false),
+                      ctx.treeMaker.Import(contAccess, true));
+
+        compilationUnit.defs = com.sun.tools.javac.util.List.from(imports).appendList(compilationUnit.defs);
     }
 }

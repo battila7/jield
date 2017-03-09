@@ -9,7 +9,13 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface GeneratorState<T> extends Function<GeneratorState<T>, Bounce<T>> {
-  /*
-   * Empty, just an alias.
-   */
+    /**
+     * Creating a {@code null} literal in the processor code was somehow impossible so had to introduce this helper
+     * method to create an <i>empty</i> state.
+     * @param <T> the return type of the containing generator
+     * @return {@code null}
+     */
+    static <T> GeneratorState<T> empty() {
+        return null;
+    }
 }

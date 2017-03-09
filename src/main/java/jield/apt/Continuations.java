@@ -10,7 +10,7 @@ final class Continuations {
 
     private final int nextCont;
 
-    static Continuations endingAt(int cont) {
+    static Continuations proceedTo(int cont) {
         return new Continuations(new HashMap<>(), new HashMap<>(), cont);
     }
 
