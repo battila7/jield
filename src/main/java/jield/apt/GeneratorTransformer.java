@@ -322,7 +322,7 @@ final class GeneratorTransformer {
         } else if (statement instanceof JCDoWhileLoop) {
             transformDoWhileLoop((JCDoWhileLoop) statement, current, conts);
         } else if (statement instanceof JCIf) {
-            // transformIf((JCIf) statement, current, conts);
+            transformIf((JCIf) statement, current, conts);
         } else {
             // transformNoop(statement, current);
         }
@@ -489,6 +489,58 @@ final class GeneratorTransformer {
          */
         transformStatement(loop.getStatement(), bodyState,
                 conts.next(condState).addBreak(null, conts.getNext()).addContinue(null, condState));
+    }
+
+    private boolean hasUnconditionalElse(JCIf statement) {
+        if (statement.getElseStatement() == null) {
+            return false;
+        } else if (!(statement.getElseStatement() instanceof JCIf)){
+            return true;
+        } else {
+            return hasUnconditionalElse((JCIf) statement.getElseStatement());
+        }
+    }
+
+    private void transformIf(JCIf statement, int current, Continuations conts) {
+        final int thenState = newState();
+
+        transformStatement(statement.getThenStatement(), thenState, conts);
+
+        JCStatement elsePart = null;
+
+        int elseState = -1;
+
+        final boolean unconditionalElse = hasUnconditionalElse(statement);
+
+        if (statement.getElseStatement() != null) {
+            elseState = newState();
+
+            transformStatement(statement.getElseStatement(), elseState, conts);
+
+            if (!unconditionalElse) {
+                final ListBuffer<JCStatement> elseStatements = new ListBuffer<>();
+
+                elseStatements.add(yield(elseState, Optional.empty()));
+
+                elsePart = ctx.treeMaker.Block(NO_MODIFIERS, elseStatements.toList());
+            }
+        }
+
+        final ListBuffer<JCStatement> thenStatements = new ListBuffer<>();
+
+        thenStatements.add(yield(thenState, Optional.empty()));
+
+        final JCStatement thenPart = ctx.treeMaker.Block(NO_MODIFIERS, thenStatements.toList());
+
+        final JCIf newIf = ctx.treeMaker.If(statement.getCondition(), thenPart, elsePart);
+
+        states.get(current).add(newIf);
+
+        if (!unconditionalElse) {
+            states.get(current).add(yield(conts.getNext(), Optional.empty()));
+        } else {
+            states.get(current).add(yield(elseState, Optional.empty()));
+        }
     }
 
     /*
