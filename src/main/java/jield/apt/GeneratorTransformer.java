@@ -2,6 +2,7 @@ package jield.apt;
 
 import static com.sun.source.tree.Tree.Kind.INTERFACE;
 import static javax.lang.model.element.Modifier.STATIC;
+import static jield.apt.Continuation.NO_LABEL;
 
 import com.sun.source.tree.MemberReferenceTree;
 import com.sun.tools.javac.code.Flags;
@@ -322,8 +323,40 @@ final class GeneratorTransformer {
             transformDoWhileLoop((JCDoWhileLoop) statement, current, cont);
         } else if (statement instanceof JCIf) {
             transformIf((JCIf) statement, current, cont);
+        } else if (statement instanceof JCBreak) {
+            transformBreak((JCBreak) statement, current, cont);
+        } else if (statement instanceof JCContinue) {
+            transformContinue((JCContinue) statement, current, cont);
+        } else if (statement instanceof JCLabeledStatement) {
+            transformLabeledStatement((JCLabeledStatement) statement, current, cont);
         } else {
-            // transformNoop(statement, current);
+            transformNoop(statement, current);
+        }
+    }
+
+    private void transformNoop(JCStatement statement, int current) {
+        states.get(current).add(statement);
+    }
+
+    private void transformContinue(JCContinue statement, int current, Continuation cont) {
+        if (statement.getLabel() != null) {
+            states.get(current).add(yield(cont.getContinueCont(statement.label.toString()), Optional.empty()));
+        } else {
+            states.get(current).add(yield(cont.getContinueCont(null), Optional.empty()));
+        }
+    }
+
+    private void transformLabeledStatement(JCLabeledStatement statement, int current, Continuation cont) {
+        String label = statement.getLabel().toString();
+
+        transformStatement(statement.getStatement(), current, cont.label(label).breakCont(label, cont.getNextCont()));
+    }
+
+    private void transformBreak(JCBreak statement, int current, Continuation cont) {
+        if (statement.getLabel() != null) {
+            states.get(current).add(yield(cont.getBreakCont(statement.label.toString()), Optional.empty()));
+        } else {
+            states.get(current).add(yield(cont.getBreakCont(null), Optional.empty()));
         }
     }
 
@@ -405,11 +438,16 @@ final class GeneratorTransformer {
          *
          * It's important to note that the continuation of the created states
          * will be the update state.
-         *
-         * TODO: Labels
          */
-        transformStatement(loop.getStatement(), bodyState,
-            cont.nextCont(updateState).breakCont(null, cont.getNextCont()));
+        Continuation c = cont.nextCont(updateState)
+                .breakCont(NO_LABEL, cont.getNextCont())
+                .continueCont(NO_LABEL, updateState);
+
+        for (String label : c.getLabels()) {
+            c = c.continueCont(label, updateState);
+        }
+
+        transformStatement(loop.getStatement(), bodyState, c.clearLabels());
     }
 
     private void transformWhileLoop(JCWhileLoop loop, int current, Continuation cont) {
@@ -444,11 +482,15 @@ final class GeneratorTransformer {
 
         condStatements.add(yield(cont.getNextCont(), Optional.empty()));
 
-        /*
-         * TODO: Labels
-         */
-        transformStatement(loop.getStatement(), bodyState,
-                cont.nextCont(condState).breakCont(null, cont.getNextCont()));
+        Continuation c = cont.nextCont(condState)
+                .breakCont(NO_LABEL, cont.getNextCont())
+                .continueCont(NO_LABEL, condState);
+
+        for (String label : c.getLabels()) {
+            c = c.continueCont(label, condState);
+        }
+
+        transformStatement(loop.getStatement(), bodyState, c.clearLabels());
     }
 
     private void transformDoWhileLoop(JCDoWhileLoop loop, int current, Continuation cont) {
@@ -483,11 +525,15 @@ final class GeneratorTransformer {
 
         condStatements.add(yield(cont.getNextCont(), Optional.empty()));
 
-        /*
-         * TODO: Labels
-         */
-        transformStatement(loop.getStatement(), bodyState,
-                cont.nextCont(condState).breakCont(null, cont.getNextCont()));
+        Continuation c = cont.nextCont(condState)
+                .breakCont(NO_LABEL, cont.getNextCont())
+                .continueCont(NO_LABEL, condState);
+
+        for (String label : c.getLabels()) {
+            c = c.continueCont(label, condState);
+        }
+
+        transformStatement(loop.getStatement(), bodyState, c.clearLabels());
     }
 
     private boolean hasUnconditionalElse(JCIf statement) {
@@ -503,7 +549,7 @@ final class GeneratorTransformer {
     private void transformIf(JCIf statement, int current, Continuation cont) {
         final int thenState = newState();
 
-        transformStatement(statement.getThenStatement(), thenState, cont);
+        transformStatement(statement.getThenStatement(), thenState, cont.label(NO_LABEL));
 
         JCStatement elsePart = null;
 
@@ -514,7 +560,7 @@ final class GeneratorTransformer {
         if (statement.getElseStatement() != null) {
             elseState = newState();
 
-            transformStatement(statement.getElseStatement(), elseState, cont);
+            transformStatement(statement.getElseStatement(), elseState, cont.label(NO_LABEL));
 
             if (!unconditionalElse) {
                 final ListBuffer<JCStatement> elseStatements = new ListBuffer<>();
@@ -564,7 +610,7 @@ final class GeneratorTransformer {
         int childCurrent = current;
 
         for (JCStatement statement : block.getStatements()) {
-            transformStatement(statement, childCurrent, cont.nextCont(childContinuation));
+            transformStatement(statement, childCurrent, cont.nextCont(childContinuation).label(NO_LABEL));
 
             /*
              * We gave the child statement a state and it exhausted it with a yield.

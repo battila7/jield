@@ -1,59 +1,78 @@
 package jield.apt;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 final class Continuation {
-    public static final String NO_LABEL = null;
+    static final String NO_LABEL = null;
 
     private final Map<String, Integer> breakMap;
 
+    private final Map<String, Integer> continueMap;
+
     private final Map<String, String> renamingMap;
 
-    private final String label;
+    private final List<String> labels;
 
     private final int nextCont;
 
     static Continuation empty() {
-        return new Continuation(new HashMap<>(), new HashMap<>(), NO_LABEL, -1);
+        return new Continuation(emptyMap(), emptyMap(), emptyMap(), emptyList(), -1);
     }
 
-    private Continuation(Map<String, Integer> breakMap, Map<String, String> renamingMap, String label, int nextCont) {
-        this.breakMap = new HashMap<>();
+    private Continuation(Map<String, Integer> breakMap, Map<String, Integer> continueMap,
+                         Map<String, String> renamingMap, List<String> labels, int nextCont) {
+        this.breakMap = new HashMap<>(breakMap);
 
-        this.breakMap.putAll(breakMap);
+        this.continueMap = new HashMap<>(continueMap);
 
-        this.renamingMap = new HashMap<>();
+        this.renamingMap = new HashMap<>(renamingMap);
 
-        this.renamingMap.putAll(renamingMap);
-
-        this.label = label;
+        this.labels = new ArrayList<>(labels);
 
         this.nextCont = nextCont;
     }
 
     Continuation nextCont(int cont) {
-        return new Continuation(breakMap, renamingMap, label, cont);
+        return new Continuation(breakMap, continueMap, renamingMap, labels, cont);
     }
 
     Continuation breakCont(String label, int cont) {
-        final Continuation ctx = new Continuation(breakMap, renamingMap, label, nextCont);
+        final Continuation c = new Continuation(breakMap, continueMap, renamingMap, labels, cont);
 
-        ctx.breakMap.put(label, cont);
+        c.breakMap.put(label, cont);
 
-        return ctx;
+        return c;
+    }
+
+    Continuation continueCont(String label, int cont) {
+        final Continuation c = new Continuation(breakMap, continueMap, renamingMap, labels, cont);
+
+        c.continueMap.put(label, cont);
+
+        return c;
     }
 
     Continuation rename(String from, String to) {
-        final Continuation ctx = new Continuation(breakMap, renamingMap, label, nextCont);
+        final Continuation c = new Continuation(breakMap, continueMap, renamingMap, labels, nextCont);
 
-        ctx.renamingMap.put(from, to);
+        c.renamingMap.put(from, to);
 
-        return ctx;
+        return c;
     }
 
     Continuation label(String l) {
-        return new Continuation(breakMap, renamingMap, l, nextCont);
+        final Continuation c = new Continuation(breakMap, continueMap, renamingMap, labels, nextCont);
+
+        c.labels.add(l);
+
+        return c;
+    }
+
+    Continuation clearLabels() {
+        return new Continuation(breakMap, continueMap, renamingMap, emptyList(), nextCont);
     }
 
     int getNextCont() {
@@ -64,8 +83,12 @@ final class Continuation {
         return breakMap.get(label);
     }
 
-    String getLabel() {
-        return label;
+    int getContinueCont(String label) {
+        return continueMap.get(label);
+    }
+
+    List<String> getLabels() {
+        return labels;
     }
 
     String nameOf(String variable) {
