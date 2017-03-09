@@ -48,6 +48,8 @@ final class GeneratorTransformer {
 
     private final JCExpression generatedType;
 
+    private String selfName;
+
     private int maxState;
 
     private int endState;
@@ -106,13 +108,29 @@ final class GeneratorTransformer {
 
         this.endState = newState();
 
+        generateSelfField();
+
         generateParameterFields();
 
-        transformBlock(originalMethod.getBody(), startState, Continuation.empty().nextCont(endState));
+        transformBlock(originalMethod.getBody(), startState,
+                Continuation.empty().nextCont(endState).rename("this", this.selfName));
 
         finishEndState();
 
         return createClassDeclaration();
+    }
+
+    private void generateSelfField() {
+        Random rand = new Random();
+
+        this.selfName = "$" + enclosingClass.getSimpleName().toString() + Integer.toString(rand.nextInt());
+
+        JCVariableDecl decl =
+            ctx.treeMaker.VarDef(ctx.treeMaker.Modifiers(Flags.PRIVATE),
+                                 ctx.name(this.selfName), ctx.treeMaker.Ident(enclosingClass.name),
+                                 null);
+
+        fields.put(this.selfName, decl);
     }
 
     /**
@@ -228,6 +246,14 @@ final class GeneratorTransformer {
                 .VarDef(ctx.treeMaker.Modifiers(NO_MODIFIERS), generatorName, ctx.treeMaker.Ident(ctx.name(className)), instantiation);
 
         stats.add(generatorAssign);
+
+        final JCFieldAccess selfFieldAccess =
+                ctx.treeMaker.Select(ctx.treeMaker.Ident(generatorName), ctx.name(this.selfName));
+
+        final JCExpression selfAssign =
+                ctx.treeMaker.Assign(selfFieldAccess, ctx.treeMaker.Ident(ctx.name("this")));
+
+        stats.add(ctx.treeMaker.Exec(selfAssign));
 
         for (JCVariableDecl param : originalMethod.getParameters()) {
             final JCFieldAccess fieldAccess =

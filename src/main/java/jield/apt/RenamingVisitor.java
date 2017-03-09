@@ -49,16 +49,18 @@ final class RenamingVisitor extends TreeScanner {
 
     @Override
     public void visitSelect(JCFieldAccess jcFieldAccess) {
-        /*
-         * Do nothing for now.
-         *
-         * TODO: this
-         */
+        if (jcFieldAccess.getExpression() instanceof JCIdent) {
+            JCIdent id = (JCIdent) jcFieldAccess.getExpression();
+
+            if ("this".equals(id.name.toString())) {
+                id.name = names.fromString(cont.nameOf("this"));
+            }
+        }
     }
 
     @Override
     public void visitClassDef(JCClassDecl jcClassDecl) {
-        Continuation c = cont;
+        Continuation c = cont.rename("this", "this");
 
         for (JCTree s : jcClassDecl.defs) {
             if (s instanceof JCVariableDecl) {
