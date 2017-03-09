@@ -313,7 +313,7 @@ final class GeneratorTransformer {
         } else if (statement instanceof JCForLoop) {
             transformForLoop((JCForLoop) statement, current, conts);
         } else if (statement instanceof JCWhileLoop) {
-            // transformWhileLoop((JCWhileLoop) statement, current, conts);
+            transformWhileLoop((JCWhileLoop) statement, current, conts);
         } else if (statement instanceof JCDoWhileLoop) {
             // transformDoWhileLoop((JCDoWhileLoop) statement, current, conts);
         } else if (statement instanceof JCIf) {
@@ -365,7 +365,7 @@ final class GeneratorTransformer {
 
         final JCBlock ifBlock = ctx.treeMaker.Block(NO_MODIFIERS, ifBody.toList());
 
-        JCExpression cond;
+        final JCExpression cond;
 
         if (loop.getCondition() != null) {
             cond = loop.getCondition();
@@ -396,9 +396,50 @@ final class GeneratorTransformer {
          *
          * It's important to note that the continuation of the created states
          * will be the update state.
+         *
+         * TODO: Labels
          */
         transformStatement(loop.getStatement(), bodyState,
                 conts.next(updateState).addBreak(null, conts.getNext()).addContinue(null, updateState));
+    }
+
+    private void transformWhileLoop(JCWhileLoop loop, int current, Continuations conts) {
+        /*
+         * Close the "current" state.
+         */
+        final int condState = newState();
+
+        states.get(current).add(yield(condState, Optional.empty()));
+
+        final java.util.List<JCStatement> condStatements = states.get(condState);
+
+        final ListBuffer<JCStatement> ifBody = new ListBuffer<>();
+
+        final int bodyState = newState();
+
+        ifBody.add(yield(bodyState, Optional.empty()));
+
+        final JCBlock ifBlock = ctx.treeMaker.Block(NO_MODIFIERS, ifBody.toList());
+
+        final JCExpression cond;
+
+        if (loop.getCondition() != null) {
+            cond = loop.getCondition();
+        } else {
+            cond = ctx.treeMaker.Literal(Boolean.TRUE);
+        }
+
+        final JCIf conditional = ctx.treeMaker.If(cond, ifBlock, null);
+
+        condStatements.add(conditional);
+
+        condStatements.add(yield(conts.getNext(), Optional.empty()));
+
+        /*
+         * TODO: Labels
+         */
+        transformStatement(loop.getStatement(), bodyState,
+                conts.next(condState).addBreak(null, conts.getNext()).addContinue(null, condState));
     }
 
     private void transformBlock(JCBlock block, int current, Continuations conts) {
