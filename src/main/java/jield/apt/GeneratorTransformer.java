@@ -162,7 +162,7 @@ final class GeneratorTransformer {
             ctx.treeMaker.Select(genStateAccess, ctx.name(Identifiers.EMPTY_METHOD));
 
         final JCMethodInvocation invokeEmpty =
-            ctx.treeMaker.Apply(List.of(generatedType), selectEmpty.setType(Type.noType), List.nil());
+            ctx.treeMaker.Apply(List.nil(), selectEmpty.setType(Type.noType), List.nil());
 
         final JCExpression selectApply =
             ctx.treeMaker.Select(ctx.treeMaker.Ident(ctx.name(CONTINUATION_PARAM)), ctx.name(Identifiers.APPLY_METHOD));
@@ -219,7 +219,7 @@ final class GeneratorTransformer {
         rewriteOriginalMethod();
 
         return ctx.treeMaker.ClassDef(mods, ctx.name(className),
-            List.nil(), null, List.nil(), defs.toList());
+            originalMethod.getTypeParameters(), null, List.nil(), defs.toList());
     }
 
     /**
@@ -236,21 +236,32 @@ final class GeneratorTransformer {
      * </pre>
      */
     private void rewriteOriginalMethod() {
+        final ListBuffer<JCExpression> typeParams = new ListBuffer<>();
+
+        for (JCTypeParameter param : originalMethod.getTypeParameters()) {
+            typeParams.add(ctx.treeMaker.Ident(param.getName()));
+        }
+
         final Name generatorName = ctx.name(GENERATOR_VARIABLE);
 
         final JCIdent generator = ctx.treeMaker.Ident(generatorName);
 
+        final JCTypeApply clazz =
+                ctx.treeMaker.TypeApply(ctx.treeMaker.Ident(ctx.name(className)), typeParams.toList());
+
         final JCNewClass instantiation = ctx.treeMaker.NewClass(null,
             List.nil(),
-            ctx.treeMaker.Ident(ctx.name(className)),
+            typeParams.length() > 0 ? clazz : ctx.treeMaker.Ident(ctx.name(className)),
             List.nil(),
             null);
 
         final ListBuffer<JCStatement> stats = new ListBuffer<>();
 
         final JCStatement generatorAssign =
-            ctx.treeMaker
-                .VarDef(ctx.treeMaker.Modifiers(NO_MODIFIERS), generatorName, ctx.treeMaker.Ident(ctx.name(className)), instantiation);
+            ctx.treeMaker.VarDef(ctx.treeMaker.Modifiers(NO_MODIFIERS),
+                    generatorName,
+                    typeParams.length() > 0 ? clazz : ctx.treeMaker.Ident(ctx.name(className)),
+                    instantiation);
 
         stats.add(generatorAssign);
 

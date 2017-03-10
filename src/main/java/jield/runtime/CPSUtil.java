@@ -7,8 +7,7 @@ import java.util.Iterator;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-
-import static jield.runtime.Bounce.cont;
+import java.util.stream.Stream;
 
 /**
  * Utility class providing helper method for the CPS transformation.
