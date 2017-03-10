@@ -48,6 +48,8 @@ final class GeneratorTransformer {
 
     private final JCExpression generatedType;
 
+    private final boolean isStaticContext;
+
     private String selfName;
 
     private int maxState;
@@ -70,6 +72,9 @@ final class GeneratorTransformer {
         this.fields = new HashMap<>();
 
         this.classDefs = new ArrayList<>();
+
+        this.isStaticContext =
+                originalMethod.getModifiers().getFlags().contains(STATIC) || INTERFACE.equals(enclosingClass.getKind());
 
         this.maxState = -1;
 
@@ -108,7 +113,9 @@ final class GeneratorTransformer {
 
         this.endState = newState();
 
-        generateSelfField();
+        if (!isStaticContext) {
+            generateSelfField();
+        }
 
         generateParameterFields();
 
@@ -191,7 +198,7 @@ final class GeneratorTransformer {
          * applied if the transformed method was located in an interface. In that case we have a default method which
          * is implicitly static.
          */
-        if (originalMethod.getModifiers().getFlags().contains(STATIC) || INTERFACE.equals(enclosingClass.getKind())) {
+        if (isStaticContext) {
             flags |= Flags.STATIC;
         }
 
@@ -247,13 +254,15 @@ final class GeneratorTransformer {
 
         stats.add(generatorAssign);
 
-        final JCFieldAccess selfFieldAccess =
-                ctx.treeMaker.Select(ctx.treeMaker.Ident(generatorName), ctx.name(this.selfName));
+        if (!isStaticContext) {
+            final JCFieldAccess selfFieldAccess =
+                    ctx.treeMaker.Select(ctx.treeMaker.Ident(generatorName), ctx.name(this.selfName));
 
-        final JCExpression selfAssign =
-                ctx.treeMaker.Assign(selfFieldAccess, ctx.treeMaker.Ident(ctx.name("this")));
+            final JCExpression selfAssign =
+                    ctx.treeMaker.Assign(selfFieldAccess, ctx.treeMaker.Ident(ctx.name("this")));
 
-        stats.add(ctx.treeMaker.Exec(selfAssign));
+            stats.add(ctx.treeMaker.Exec(selfAssign));
+        }
 
         for (JCVariableDecl param : originalMethod.getParameters()) {
             final JCFieldAccess fieldAccess =
@@ -415,6 +424,8 @@ final class GeneratorTransformer {
             transformContinue((JCContinue) statement, current, cont);
         } else if (statement instanceof JCLabeledStatement) {
             transformLabeledStatement((JCLabeledStatement) statement, current, cont);
+        } else if (statement instanceof JCEnhancedForLoop) {
+            transformEnhancedForLoop((JCEnhancedForLoop) statement, current, cont);
         } else if (statement instanceof JCClassDecl) {
             RenamingVisitor.visit(statement, cont, ctx.names);
 
@@ -422,6 +433,121 @@ final class GeneratorTransformer {
         } else {
             transformNoop(statement, current, cont);
         }
+    }
+
+    private void transformEnhancedForLoop(JCEnhancedForLoop loop, int current, Continuation cont) {
+        Continuation c = cont;
+
+        final int initState = newState();
+
+        states.get(current).add(yield(initState, Optional.empty()));
+
+        RenamingVisitor.visit(loop.getExpression(), c, ctx.names);
+
+        final java.util.List<JCStatement> initStatements = states.get(initState);
+
+        final JCIdent javaPackage =
+                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JAVA));
+
+        final JCFieldAccess utilAccess =
+                ctx.treeMaker.Select(javaPackage, ctx.names.fromString(Identifiers.UTIL));
+
+        final JCFieldAccess iteratorAccess =
+                ctx.treeMaker.Select(utilAccess, ctx.names.fromString(Identifiers.ITERATOR));
+
+        final JCExpression iteratorType;
+
+        if (loop.var.getType() instanceof JCPrimitiveTypeTree) {
+            iteratorType =
+                    ctx.treeMaker.Ident(ctx.name(primitiveToObject(loop.var.getType().toString())));
+        } else {
+            iteratorType = (JCExpression) loop.var.getType();
+        }
+
+        final JCTypeApply parameterizedIterator =
+                ctx.treeMaker.TypeApply(iteratorAccess, List.of(iteratorType));
+
+        final JCIdent jieldPackage =
+                ctx.treeMaker.Ident(ctx.names.fromString(Identifiers.JIELD));
+
+        final JCFieldAccess runtimeAccess =
+                ctx.treeMaker.Select(jieldPackage, ctx.names.fromString(Identifiers.RUNTIME));
+
+        final JCFieldAccess cpsUtilAccess =
+                ctx.treeMaker.Select(runtimeAccess, ctx.names.fromString(Identifiers.CPS_UTIL));
+
+        final JCFieldAccess iteratorMethodAccess =
+                ctx.treeMaker.Select(cpsUtilAccess, ctx.names.fromString(Identifiers.ITERATOR_METHOD));
+
+        final JCMethodInvocation iteratorInvocation =
+                ctx.treeMaker.App(iteratorMethodAccess.setType(Type.noType),
+                        List.of(loop.getExpression()));
+
+        final JCVariableDecl iteratorDecl =
+            ctx.treeMaker.VarDef(ctx.treeMaker.Modifiers(NO_MODIFIERS),
+                    ctx.name("iterator"),
+                    parameterizedIterator,
+                    iteratorInvocation);
+
+        c = addVariableAsField(iteratorDecl, c);
+
+        convertVariableDeclarationToAssignment(iteratorDecl, c)
+                .ifPresent(initStatements::add);
+
+        c = addVariableAsField(loop.getVariable(), c);
+
+        final int conditionState = newState();
+
+        initStatements.add(yield(conditionState, Optional.empty()));
+
+        /*
+         * Place the condition into a separate method.
+         */
+
+        final java.util.List<JCStatement> condStatements = states.get(conditionState);
+
+        final ListBuffer<JCStatement> ifBody = new ListBuffer<>();
+
+        final int bodyState = newState();
+
+        final JCIdent iteratorId =
+                ctx.treeMaker.Ident(ctx.name(c.nameOf("iterator")));
+
+        final JCFieldAccess nextMethodAccess =
+                ctx.treeMaker.Select(iteratorId, ctx.name(Identifiers.NEXT_METHOD));
+
+        final JCMethodInvocation nextMethodInvocation =
+                ctx.treeMaker.App(nextMethodAccess.setType(Type.noType));
+
+        final JCAssign assignNext =
+                ctx.treeMaker.Assign(ctx.treeMaker.Ident(ctx.name(c.nameOf(loop.var.name.toString()))), nextMethodInvocation);
+
+        ifBody.add(ctx.treeMaker.Exec(assignNext));
+
+        ifBody.add(yield(bodyState, Optional.empty()));
+
+        final JCBlock ifBlock = ctx.treeMaker.Block(NO_MODIFIERS, ifBody.toList());
+
+        final JCFieldAccess hasNextAccess =
+                ctx.treeMaker.Select(iteratorId, ctx.name(Identifiers.HAS_NEXT_METHOD));
+
+        final JCExpression cond = ctx.treeMaker.App(hasNextAccess.setType(Type.noType));
+
+        final JCIf conditional = ctx.treeMaker.If(cond, ifBlock, null);
+
+        condStatements.add(conditional);
+
+        condStatements.add(yield(c.getNextCont(), Optional.empty()));
+
+        c = c.nextCont(conditionState)
+                .breakCont(NO_LABEL, cont.getNextCont())
+                .continueCont(NO_LABEL, conditionState);
+
+        for (String label : c.getLabels()) {
+            c = c.continueCont(label, conditionState);
+        }
+
+        transformStatement(loop.getStatement(), bodyState, c.clearLabels());
     }
 
     private void transformNoop(JCStatement statement, int current, Continuation cont) {
@@ -848,19 +974,15 @@ final class GeneratorTransformer {
     private Continuation addVariableAsField(JCVariableDecl localVariableDecl, Continuation cont) {
         final JCModifiers mods = ctx.treeMaker.Modifiers(Flags.PRIVATE);
 
-        String newName = localVariableDecl.getName().toString();
+        String original = localVariableDecl.getName().toString();
 
-        while (fields.containsKey(newName)) {
-            newName += "$";
-        }
-
-        final Name name = ctx.names.fromString(newName);
+        final Name name = ctx.names.fromString(generateUnusedIdentifier(original));
 
         final JCExpression variableType = localVariableDecl.vartype;
 
         fields.put(name.toString(), ctx.treeMaker.VarDef(mods, name, variableType, null));
 
-        return cont.rename(localVariableDecl.getName().toString(), newName);
+        return cont.rename(localVariableDecl.getName().toString(), name.toString());
     }
 
     /**
@@ -878,5 +1000,29 @@ final class GeneratorTransformer {
         final JCExpression nameExpression = ctx.treeMaker.Ident(name);
 
         return Optional.of(ctx.treeMaker.Exec(ctx.treeMaker.Assign(nameExpression, declaration.getInitializer())));
+    }
+
+    private String generateUnusedIdentifier(String base) {
+        String result = base;
+
+        while (fields.containsKey(result)) {
+            result += "$";
+        }
+
+        return result;
+    }
+
+    private String primitiveToObject(String primitive) {
+        switch (primitive) {
+            case "byte": return "Byte";
+            case "short": return "Short";
+            case "int": return "Integer";
+            case "long": return "Long";
+            case "float": return "Float";
+            case "double": return "Double";
+            case "boolean": return "Boolean";
+            case "char": return "Character";
+            default: return primitive;
+        }
     }
 }

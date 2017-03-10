@@ -1,6 +1,10 @@
 package jield.apt;
 
-class Identifiers {
+final class Identifiers {
+    static final String JAVA = "java";
+
+    static final String UTIL = "util";
+
     static final String JIELD = "jield";
 
     static final String RUNTIME = "runtime";
@@ -10,6 +14,16 @@ class Identifiers {
     static final String GENERATOR_STATE = "GeneratorState";
 
     static final String BASE_GENERATOR = "BaseGenerator";
+
+    static final String CPS_UTIL = "CPSUtil";
+
+    static final String ITERATOR = "Iterator";
+
+    static final String ITERATOR_METHOD = "iterator";
+
+    static final String NEXT_METHOD = "next";
+
+    static final String HAS_NEXT_METHOD = "hasNext";
 
     static final String GENERATOR_ANNOTATION = "Generator";
 
@@ -22,4 +36,10 @@ class Identifiers {
     static final String STREAM_METHOD = "stream";
 
     static final String STARTING_AT_METHOD = "startingAt";
+
+    private Identifiers() {
+        /*
+         * Cannot be instantiated.
+         */
+    }
 }

@@ -1,5 +1,13 @@
 package jield.runtime;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
 import static jield.runtime.Bounce.cont;
 
 /**
@@ -12,22 +20,66 @@ public final class CPSUtil {
      */
     }
 
-    /**
-     * Returns the continuation with which the execution should continue based on the evaluation of the specified
-     * condition.
-     * @param cond the condition to be evaluated
-     * @param then the continuation to be returned if the condition evaluates to {@code true}
-     * @param otherwise the continuation to be returned if the condition evaluates to {@code false}
-     * @param k the continuation to be passed to the returned continuation
-     * @param <T> the return type of the enclosing generator
-     * @return a {@code Bounce} instance with no return value but only the next continuation
-     */
-    public static <T> Bounce<T> conditional(Thunk<Boolean> cond, GeneratorState<T> then, GeneratorState<T> otherwise,
-                                            GeneratorState<T> k) {
-        if (cond.evaluate()) {
-            return cont(() -> then.apply(k));
-        } else {
-            return cont(() -> otherwise.apply(k));
+    public static Iterator<Byte> iterator(byte[] array) {
+        return new ArrayIterator<>(array);
+    }
+
+    public static Iterator<Short> iterator(short[] array) {
+        return new ArrayIterator<>(array);
+    }
+
+    public static Iterator<Integer> iterator(int[] array) {
+        return IntStream.of(array).iterator();
+    }
+
+    public static Iterator<Long> iterator(long[] array) {
+        return LongStream.of(array).iterator();
+    }
+
+    public static Iterator<Float> iterator(float[] array) {
+        return new ArrayIterator<>(array);
+    }
+
+    public static Iterator<Double> iterator(double[] array) {
+        return DoubleStream.of(array).iterator();
+    }
+
+    public static Iterator<Character> iterator(char[] array) {
+        return new ArrayIterator<>(array);
+    }
+
+    public static Iterator<Boolean> iterator(boolean[] array) {
+        return new ArrayIterator<>(array);
+    }
+
+    public static <T> Iterator<T> iterator(T[] array) {
+        return Arrays.asList(array).iterator();
+    }
+
+    public static <T> Iterator<T> iterator(Collection<T> collection) {
+        return collection.iterator();
+    }
+
+    private static class ArrayIterator<T> implements Iterator<T> {
+        private final Object array;
+
+        private int index;
+
+        private ArrayIterator(Object array) {
+            this.array = array;
+
+            this.index = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < Array.getLength(array);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public T next() {
+            return (T) Array.get(array, index++);
         }
     }
 }
