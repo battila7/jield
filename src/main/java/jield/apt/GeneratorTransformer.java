@@ -858,8 +858,10 @@ final class GeneratorTransformer {
             if (statement instanceof JCVariableDecl) {
                 c = addVariableAsField((JCVariableDecl) statement, c);
 
+                final int cc = childCurrent;
+
                 convertVariableDeclarationToAssignment((JCVariableDecl) statement, c)
-                    .ifPresent(s -> states.get(current).add(s));
+                    .ifPresent(s -> states.get(cc).add(s));
 
                 RenamingVisitor.visit(statement, c, ctx.names);
             } else {
