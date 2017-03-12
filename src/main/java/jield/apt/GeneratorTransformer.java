@@ -418,7 +418,7 @@ final class GeneratorTransformer {
         if (statement instanceof JCBlock) {
             transformBlock((JCBlock) statement, current, cont);
         } else if (statement instanceof JCVariableDecl) {
-            return; // handled by the block
+            return; // handled by block and case
         } else if (statement instanceof JCReturn) {
             transformYield((JCReturn) statement, current, cont);
         } else if (statement instanceof JCForLoop) {
@@ -429,6 +429,8 @@ final class GeneratorTransformer {
             transformDoWhileLoop((JCDoWhileLoop) statement, current, cont);
         } else if (statement instanceof JCIf) {
             transformIf((JCIf) statement, current, cont);
+        } else if (statement instanceof JCSwitch) {
+            transformSwitch((JCSwitch) statement, current, cont);
         } else if (statement instanceof JCBreak) {
             transformBreak((JCBreak) statement, current, cont);
         } else if (statement instanceof JCContinue) {
@@ -443,6 +445,118 @@ final class GeneratorTransformer {
             classDefs.add(statement);
         } else {
             transformNoop(statement, current, cont);
+        }
+    }
+
+    private void transformSwitch(JCSwitch statement, int current, Continuation cont) {
+        Continuation c = cont;
+
+        final int dispatcherState = newState();
+
+        states.get(current).add(yield(dispatcherState, Optional.empty()));
+
+        RenamingVisitor.visit(statement.selector, c, ctx.names);
+
+        final Map<JCCase, Integer> caseStates = new HashMap<>();
+
+        final Map<JCCase, JCCase> caseMapping = new HashMap<>();
+
+        boolean hasDefaultCase = false;
+
+        for (JCCase jcCase : statement.cases) {
+            if (jcCase.pat == null) {
+                hasDefaultCase = true;
+            }
+
+            caseStates.put(jcCase, newState());
+
+            final JCStatement yieldToCase = yield(caseStates.get(jcCase), Optional.empty());
+
+            final JCCase dispatcherCase = ctx.treeMaker.Case(jcCase.pat, List.of(yieldToCase));
+
+            caseMapping.put(jcCase, dispatcherCase);
+        }
+
+        final JCSwitch dispatcherSwitch =
+            ctx.treeMaker.Switch(statement.selector, List.from(caseMapping.values()));
+
+        states.get(dispatcherState).add(dispatcherSwitch);
+
+        if (!hasDefaultCase) {
+            states.get(dispatcherState).add(yield(cont.getNextCont(), Optional.empty()));
+        }
+
+        for (int i = 0; i < statement.cases.length(); ++i) {
+            Continuation cnt = c.breakCont(NO_LABEL, c.getNextCont()).clearLabels();
+
+            if (i < statement.cases.length() - 1) {
+                cnt = cnt.nextCont(caseStates.get(statement.cases.get(i + 1)));
+            }
+
+            transformCase(statement.cases.get(i), caseStates.get(statement.cases.get(i)), cnt);
+        }
+    }
+
+    private void transformCase(JCCase jcCase, int current, Continuation cont) {
+        Continuation c = cont;
+
+        /*
+         * Create an empty continuation state for child statements.
+         */
+        int childContinuation = newState();
+
+        /*
+         * Before looping over the block, the current state is empty, so it can
+         * be passed to a child statement.
+         */
+        int childCurrent = current;
+
+        for (JCStatement statement : jcCase.getStatements()) {
+            if (statement instanceof JCVariableDecl) {
+                c = addVariableAsField((JCVariableDecl) statement, c);
+
+                final int cc = childCurrent;
+
+                convertVariableDeclarationToAssignment((JCVariableDecl) statement, c)
+                    .ifPresent(s -> states.get(cc).add(s));
+
+                RenamingVisitor.visit(statement, c, ctx.names);
+            } else {
+                if (!HasReturnVisitor.hasReturn(statement)) {
+                    transformNoop(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
+                } else {
+                    transformStatement(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
+                }
+            }
+
+            /*
+             * We gave the child statement a state and it exhausted it with a yield.
+             *
+             * Thus a the continuation becomes the new current state and a new state will
+             * be created as the continuation.
+             */
+            if (isStateReturns(childCurrent)) {
+                childCurrent = childContinuation;
+
+                childContinuation = newState();
+            }
+        }
+
+        if (!isStateReturns(childCurrent)) {
+            states.get(childCurrent).add(yield(c.getNextCont(), Optional.empty()));
+        }
+
+        /*
+         * Connect the inner flow to the flow we've received as the continuation.
+         */
+        states.get(childContinuation).add(yield(c.getNextCont(), Optional.empty()));
+    }
+
+    private void hasDefaultCaseWithReturn(JCSwitch statement) {
+        for (JCCase jcCase : statement.cases) {
+            if (jcCase.pat == null) {
+
+            }
         }
     }
 
@@ -865,7 +979,11 @@ final class GeneratorTransformer {
 
                 RenamingVisitor.visit(statement, c, ctx.names);
             } else {
-                transformStatement(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
+                if (!HasReturnVisitor.hasReturn(statement)) {
+                    transformNoop(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
+                } else {
+                    transformStatement(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
+                }
             }
 
             /*
@@ -881,10 +999,6 @@ final class GeneratorTransformer {
             }
         }
 
-        /*
-         * This could be omitted because of the fall-through property of the switch, but better safe
-         * than sorry.
-         */
         if (!isStateReturns(childCurrent)) {
             states.get(childCurrent).add(yield(c.getNextCont(), Optional.empty()));
         }
