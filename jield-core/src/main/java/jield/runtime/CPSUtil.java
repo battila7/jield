@@ -55,7 +55,7 @@ public final class CPSUtil {
         return Arrays.asList(array).iterator();
     }
 
-    public static <T> Iterator<T> iterator(Collection<T> collection) {
+    public static <T> Iterator<T> iterator(Iterable<T> collection) {
         return collection.iterator();
     }
 

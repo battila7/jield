@@ -1,17 +1,32 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+description = 'Jield - Generators for Java'
 
-description = 'Jield'
-group = 'jield'
-version = '0.1.0'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-dependencies {
-  compile files("${System.properties['java.home']}/../lib/tools.jar")
+allprojects {
+  group = 'jield'
+  version = '0.1.0'
 }
 
-repositories {
-  mavenCentral()
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'idea'
+
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+
+  dependencies {
+    compile files("${System.properties['java.home']}/../lib/tools.jar")
+  }
+
+  repositories {
+    mavenCentral()
+  }
+}
+
+project(':jield-examples') {
+  compileJava {
+    options.compilerArgs.addAll(['-processor', 'jield.apt.JieldProcessor'])
+  }
+
+  dependencies {
+    compile project(':jield-core')
+  }
 }
