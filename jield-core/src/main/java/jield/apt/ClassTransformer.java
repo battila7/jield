@@ -1,6 +1,7 @@
 package jield.apt;
 
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -42,9 +43,20 @@ final class ClassTransformer {
     }
 
     /**
-     * Finds generator methods and performs the transformation process on the class declaration.
+     * Finds generator methods and recursively transforms nested classes.
+     *
+     * The transformation cannot be performed on classes declared within methods because no type
+     * information is present for them at the moment of annotation processing. This is quite surprising.
      */
     void performTransformation() {
+        for (JCTree tree : classDeclaration.defs) {
+            if (tree instanceof JCClassDecl) {
+                final ClassTransformer classTransformer = new ClassTransformer((JCClassDecl) tree, ctx);
+
+                classTransformer.performTransformation();
+            }
+        }
+
         for (JCMethodDecl method : findGeneratorMethods()) {
             if (!canBeTransformed(method)) {
                 /*
@@ -128,6 +140,8 @@ final class ClassTransformer {
      * @return whether the method's return type is correct
      */
     private boolean isReturnStream(JCMethodDecl method) {
+
+
         final boolean isStream = Stream.class.getName().equals(method.getReturnType().type.tsym.toString());
 
         return isStream && ((Type.ClassType) method.getReturnType().type).typarams_field.length() == 1;
