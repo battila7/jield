@@ -1,1 +1,1 @@
-include 'jield-core', 'jield-examples'
+include 'jield-core', 'jield-examples', 'jield-benchmark'
