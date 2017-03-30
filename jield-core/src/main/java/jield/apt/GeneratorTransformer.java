@@ -522,7 +522,7 @@ final class GeneratorTransformer {
 
                 RenamingVisitor.visit(statement, c, ctx.names);
             } else {
-                if (!HasReturnVisitor.hasReturn(statement)) {
+                if (!ModifiesControlFlowVisitor.modifiesControlFlow(statement)) {
                     transformNoop(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
                 } else {
                     transformStatement(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
@@ -979,7 +979,7 @@ final class GeneratorTransformer {
 
                 RenamingVisitor.visit(statement, c, ctx.names);
             } else {
-                if (!HasReturnVisitor.hasReturn(statement)) {
+                if (!ModifiesControlFlowVisitor.modifiesControlFlow(statement)) {
                     transformNoop(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
                 } else {
                     transformStatement(statement, childCurrent, c.nextCont(childContinuation).label(NO_LABEL));
