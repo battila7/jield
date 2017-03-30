@@ -48,10 +48,7 @@ project(':jield-benchmark') {
 
   jmh {
     duplicateClassesStrategy = 'warn'
-  }
-
-  compileJmhJava {
-    options.compilerArgs.addAll(['-processor', 'jield.apt.JieldProcessor'])
+    include = ".*"
   }
 
   dependencies {
@@ -59,5 +56,6 @@ project(':jield-benchmark') {
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.18'
 
     jmh project(':jield-core')
+    jmh project(':jield-examples')
   }
 }

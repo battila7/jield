@@ -1,0 +1,7 @@
+Benchmark                        (limit)  Mode  Cnt  Score   Error  Units
+ForeverBenchmark.jield                 1  avgt   50  0.142 ± 0.002  us/op
+ForeverBenchmark.jield                10  avgt   50  0.556 ± 0.005  us/op
+ForeverBenchmark.jield               100  avgt   50  4.687 ± 0.109  us/op
+ForeverBenchmark.streamGenerate        1  avgt   50  0.038 ± 0.001  us/op
+ForeverBenchmark.streamGenerate       10  avgt   50  0.104 ± 0.002  us/op
+ForeverBenchmark.streamGenerate      100  avgt   50  0.772 ± 0.014  us/op

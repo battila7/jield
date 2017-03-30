@@ -12,19 +12,19 @@ public class Forever {
                 .limit(10)
                 .forEach(System.out::println);
 
-        f.foreverStandard("World")
+        f.foreverStreamGenerate("World")
                 .limit(10)
                 .forEach(System.out::println);
     }
 
     @Generator
-    private <T> Stream<T> foreverJield(T value) {
+    public <T> Stream<T> foreverJield(T value) {
         while (true) {
             return value;
         }
     }
 
-    private <T> Stream<T> foreverStandard(T value) {
+    public <T> Stream<T> foreverStreamGenerate(T value) {
         return Stream.generate(() -> value);
     }
 }

@@ -16,12 +16,12 @@ public class Rep {
         r.repJield(Arrays.asList("Hello", "World", "!"), 2, 2)
                 .forEach(System.out::println);
 
-        r.repStandard(Arrays.asList("Hello", "World", "!"), 2, 2)
+        r.repStreamGenerate(Arrays.asList("Hello", "World", "!"), 2, 2)
                 .forEach(System.out::println);
     }
 
     @Generator
-    private <T> Stream<T> repJield(Iterable<T> iter, int times, int each) {
+    public <T> Stream<T> repJield(Iterable<T> iter, int times, int each) {
         for (int j = 0; j < times; ++j) {
             for (T element : iter) {
                 for (int i = 0; i < each; ++i) {
@@ -31,7 +31,7 @@ public class Rep {
         }
     }
 
-    private <T> Stream<T> repStandard(Iterable<T> iter, int times, int each) {
+    public <T> Stream<T> repStreamGenerate(Iterable<T> iter, int times, int each) {
         return Stream.generate(() -> StreamSupport.stream(iter.spliterator(), false)
                                         .map(t -> Collections.nCopies(each, t))
                                         .flatMap(Collection::stream))
