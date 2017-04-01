@@ -1,0 +1,10 @@
+Benchmark                             (limit)  Mode  Cnt  Score    Error  Units
+FibonacciBenchmark.intStreamGenerate        1  avgt   50  0.037 ±  0.001  us/op
+FibonacciBenchmark.intStreamGenerate       10  avgt   50  0.096 ±  0.002  us/op
+FibonacciBenchmark.intStreamGenerate      100  avgt   50  0.679 ±  0.006  us/op
+FibonacciBenchmark.jield                    1  avgt   50  0.136 ±  0.002  us/op
+FibonacciBenchmark.jield                   10  avgt   50  0.584 ±  0.002  us/op
+FibonacciBenchmark.jield                  100  avgt   50  5.079 ±  0.012  us/op
+FibonacciBenchmark.streamGenerate           1  avgt   50  0.039 ±  0.001  us/op
+FibonacciBenchmark.streamGenerate          10  avgt   50  0.116 ±  0.001  us/op
+FibonacciBenchmark.streamGenerate         100  avgt   50  0.923 ±  0.015  us/op

@@ -31,7 +31,7 @@ public class Fibonacci {
 
             return temp;
         }
-    }
+     }
 
     public Stream<Integer> fibStreamGenerate() {
         return Stream.generate(new Supplier<Integer>() {
@@ -41,6 +41,23 @@ public class Fibonacci {
 
             @Override
             public Integer get() {
+                int temp = a;
+                a = b;
+                b = a + temp;
+
+                return temp;
+            }
+        });
+    }
+
+    public IntStream fibIntStreamGenerate() {
+        return IntStream.generate(new IntSupplier() {
+            private int a = 0;
+
+            private int b = 1;
+
+            @Override
+            public int getAsInt() {
                 int temp = a;
                 a = b;
                 b = a + temp;

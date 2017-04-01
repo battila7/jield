@@ -35,4 +35,12 @@ public class FibonacciBenchmark {
                 .limit(state.limit)
                 .forEach(bh::consume);
     }
+
+    @Benchmark
+    public void intStreamGenerate(BenchmarkState state, Blackhole bh) {
+        state.fibonacci
+                .fibIntStreamGenerate()
+                .limit(state.limit)
+                .forEach(bh::consume);
+    }
 }
