@@ -1,2 +1,3 @@
 # jield
-Generator functions for Java
+
+Generator functions in Java using CPS-transformation.

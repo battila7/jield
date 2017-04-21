@@ -1,0 +1,1233 @@
+Starting a Gradle Daemon, 1 incompatible and 2 stopped Daemons could not be reused, use --status for details
+:jield-benchmark:clean
+:jield-core:clean
+:jield-examples:clean
+:jield-benchmark:compileJava UP-TO-DATE
+:jield-benchmark:processResources UP-TO-DATE
+:jield-benchmark:classes UP-TO-DATE
+:jield-benchmark:jar
+:jield-benchmark:assemble
+:jield-benchmark:compileTestJava UP-TO-DATE
+:jield-benchmark:processTestResources UP-TO-DATE
+:jield-benchmark:testClasses UP-TO-DATE
+:jield-benchmark:test UP-TO-DATE
+:jield-benchmark:check UP-TO-DATE
+:jield-benchmark:build
+:jield-core:compileJava
+:jield-core:processResources UP-TO-DATE
+:jield-core:classes
+:jield-core:jar
+:jield-core:assemble
+:jield-core:compileTestJava UP-TO-DATE
+:jield-core:processTestResources UP-TO-DATE
+:jield-core:testClasses UP-TO-DATE
+:jield-core:test UP-TO-DATE
+:jield-core:check UP-TO-DATE
+:jield-core:build
+:jield-examples:compileJava
+package jield.examples;
+
+import jield.annotation.Generator;
+import java.util.stream.Stream;
+
+public class Example {
+    
+    public Example() {
+        super();
+    }
+    
+    Stream<Integer> generate() {
+        $GeneratorImpl_0generate-1254609133 $generator = new $GeneratorImpl_0generate-1254609133();
+        $generator.$Example1710514747 = this;
+        return $generator.stream();
+    }
+    
+    private final class $GeneratorImpl_0generate-1254609133 {
+        private Example $Example1710514747;
+        
+        private Stream<Integer> stream() {
+            return jield.runtime.BaseGenerator.startingAt(this::<>$generate_-423727361_0).stream();
+        }
+        
+        private jield.runtime.Bounce<Integer> $generate_-423727361_0(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$generate_-423727361_2($_contParam), 1);
+        }
+        
+        private jield.runtime.Bounce<Integer> $generate_-423727361_1(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$_contParam.apply(jield.runtime.GeneratorState.empty()));
+        }
+        
+        private jield.runtime.Bounce<Integer> $generate_-423727361_2(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$generate_-423727361_3($_contParam), 2);
+        }
+        
+        private jield.runtime.Bounce<Integer> $generate_-423727361_3(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$generate_-423727361_1($_contParam));
+        }
+        
+        private jield.runtime.Bounce<Integer> $generate_-423727361_4(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$generate_-423727361_1($_contParam));
+        }
+    }
+}
+package jield.examples;
+
+import jield.annotation.Generator;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+public class Fibonacci {
+    
+    public Fibonacci() {
+        super();
+    }
+    
+    public static void main(String[] args) {
+        Fibonacci f = new Fibonacci();
+        f.fibJield().limit(20).forEach(System.out::println);
+        f.fibStreamGenerate().limit(20).forEach(System.out::println);
+    }
+    
+    public Stream<Integer> fibJield() {
+        $GeneratorImpl_0fibJield2057788430 $generator = new $GeneratorImpl_0fibJield2057788430();
+        $generator.$Fibonacci-1176888520 = this;
+        return $generator.stream();
+    }
+    
+    public Stream<Integer> fibStreamGenerate() {
+        return Stream.generate(new Supplier<Integer>(){
+            private int a = 0;
+            private int b = 1;
+            
+            @Override()
+            public Integer get() {
+                int temp = a;
+                a = b;
+                b = a + temp;
+                return temp;
+            }
+        });
+    }
+    
+    private final class $GeneratorImpl_0fibJield2057788430 {
+        private int a;
+        private int b;
+        private int temp;
+        private Fibonacci $Fibonacci-1176888520;
+        
+        private Stream<Integer> stream() {
+            return jield.runtime.BaseGenerator.startingAt(this::<>$fibJield_-1045824066_0).stream();
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_0(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            a = 0;
+            b = 1;
+            return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_3($_contParam));
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_1(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$_contParam.apply(jield.runtime.GeneratorState.empty()));
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_2(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_1($_contParam));
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_3(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            if (true) {
+                return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_4($_contParam));
+            }
+            return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_2($_contParam));
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_4(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            temp = a;
+            a = b;
+            b = a + temp;
+            return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_5($_contParam), temp);
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_5(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_3($_contParam));
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_6(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_3($_contParam));
+        }
+        
+        private jield.runtime.Bounce<Integer> $fibJield_-1045824066_7(jield.runtime.GeneratorState<java.lang.Integer> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$fibJield_-1045824066_1($_contParam));
+        }
+    }
+}
+package jield.examples;
+
+import jield.annotation.Generator;
+import java.util.stream.Stream;
+
+public class Forever {
+    
+    public Forever() {
+        super();
+    }
+    
+    public static void main(String[] args) {
+        Forever f = new Forever();
+        f.foreverJield("Hello").limit(10).forEach(System.out::println);
+        f.foreverStreamGenerate("World").limit(10).forEach(System.out::println);
+    }
+    
+    public <T>Stream<T> foreverJield(T value) {
+        $GeneratorImpl_0foreverJield380709102<T> $generator = new $GeneratorImpl_0foreverJield380709102<T>();
+        $generator.$Forever937747788 = this;
+        $generator.value = value;
+        return $generator.stream();
+    }
+    
+    public <T>Stream<T> foreverStreamGenerate(T value) {
+        return Stream.generate(()->value);
+    }
+    
+    private final class $GeneratorImpl_0foreverJield380709102<T> {
+        private Forever $Forever937747788;
+        public T value;
+        
+        private Stream<T> stream() {
+            return jield.runtime.BaseGenerator.startingAt(this::<>$foreverJield_-326229240_0).stream();
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_0(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_3($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_1(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$_contParam.apply(jield.runtime.GeneratorState.empty()));
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_2(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_1($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_3(jield.runtime.GeneratorState<T> $_contParam) {
+            if (true) {
+                return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_4($_contParam));
+            }
+            return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_2($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_4(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_5($_contParam), value);
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_5(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_3($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_6(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_3($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $foreverJield_-326229240_7(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$foreverJield_-326229240_1($_contParam));
+        }
+    }
+}
+package jield.examples;
+
+import jield.annotation.Generator;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+public class Rep {
+    
+    public Rep() {
+        super();
+    }
+    
+    public static void main(String[] args) {
+        Rep r = new Rep();
+        r.repJield(Arrays.asList("Hello", "World", "!"), 2, 2).forEach(System.out::println);
+        r.repStreamGenerate(Arrays.asList("Hello", "World", "!"), 2, 2).forEach(System.out::println);
+    }
+    
+    public <T>Stream<T> repJield(Iterable<T> iter, int times, int each) {
+        $GeneratorImpl_0repJield-1433160051<T> $generator = new $GeneratorImpl_0repJield-1433160051<T>();
+        $generator.$Rep1863225010 = this;
+        $generator.iter = iter;
+        $generator.times = times;
+        $generator.each = each;
+        return $generator.stream();
+    }
+    
+    public <T>Stream<T> repStreamGenerate(Iterable<T> iter, int times, int each) {
+        return Stream.generate(()->StreamSupport.stream(iter.spliterator(), false).map((t)->Collections.nCopies(each, t)).flatMap(Collection::stream)).limit(times).flatMap(Function.identity());
+    }
+    
+    private final class $GeneratorImpl_0repJield-1433160051<T> {
+        public int times;
+        private java.util.Iterator<T> iterator;
+        public Iterable<T> iter;
+        private int i;
+        private int j;
+        private Rep $Rep1863225010;
+        public int each;
+        private T element;
+        
+        private Stream<T> stream() {
+            return jield.runtime.BaseGenerator.startingAt(this::<>$repJield_-170331220_0).stream();
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_0(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_3($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_1(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$_contParam.apply(jield.runtime.GeneratorState.empty()));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_2(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_1($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_3(jield.runtime.GeneratorState<T> $_contParam) {
+            j = 0;
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_4($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_4(jield.runtime.GeneratorState<T> $_contParam) {
+            if (j < times) {
+                return jield.runtime.Bounce.cont(()->$repJield_-170331220_5($_contParam));
+            }
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_2($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_5(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_8($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_6(jield.runtime.GeneratorState<T> $_contParam) {
+            ++j;
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_4($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_7(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_6($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_8(jield.runtime.GeneratorState<T> $_contParam) {
+            iterator = jield.runtime.CPSUtil.iterator(iter);
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_9($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_9(jield.runtime.GeneratorState<T> $_contParam) {
+            if (iterator.hasNext()) {
+                element = iterator.next();
+                return jield.runtime.Bounce.cont(()->$repJield_-170331220_10($_contParam));
+            }
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_7($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_10(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_12($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_11(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_9($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_12(jield.runtime.GeneratorState<T> $_contParam) {
+            i = 0;
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_13($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_13(jield.runtime.GeneratorState<T> $_contParam) {
+            if (i < each) {
+                return jield.runtime.Bounce.cont(()->$repJield_-170331220_14($_contParam));
+            }
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_11($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_14(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_16($_contParam), element);
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_15(jield.runtime.GeneratorState<T> $_contParam) {
+            ++i;
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_13($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_16(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_15($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_17(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_15($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_18(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_9($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_19(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_6($_contParam));
+        }
+        
+        private jield.runtime.Bounce<T> $repJield_-170331220_20(jield.runtime.GeneratorState<T> $_contParam) {
+            return jield.runtime.Bounce.cont(()->$repJield_-170331220_1($_contParam));
+        }
+    }
+}
+:jield-examples:processResources UP-TO-DATE
+:jield-examples:classes
+:jield-examples:jar
+:jield-examples:assemble
+:jield-examples:compileTestJava UP-TO-DATE
+:jield-examples:processTestResources UP-TO-DATE
+:jield-examples:testClasses UP-TO-DATE
+:jield-examples:test UP-TO-DATE
+:jield-examples:check UP-TO-DATE
+:jield-examples:build
+:jield-benchmark:compileJmhJava
+:jield-benchmark:processJmhResources UP-TO-DATE
+:jield-benchmark:jmhClasses
+:jield-benchmark:jmhRunBytecodeGenerator
+Processing 12 classes from C:\Users\Attila\projects\jield-cps\jield-benchmark\build\classes\jmh with "reflection" generator
+Writing out Java source to C:\Users\Attila\projects\jield-cps\jield-benchmark\build\jmh-generated-sources and resources to C:\Users\Attila\projects\jield-cps\jield-benchmark\build\jmh-generated-classes
+:jield-benchmark:jmhCompileGeneratedClasses
+:jield-benchmark:jmhJar
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_BenchmarkState_jmhType.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_BenchmarkState_jmhType_B1.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_BenchmarkState_jmhType_B2.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_BenchmarkState_jmhType_B3.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_jield_jmhTest.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_jmhType.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_jmhType_B1.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_jmhType_B2.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_jmhType_B3.class" during copy operation configured with DuplicatesStrategy.WARN
+Encountered duplicate path "jield/benchmark/generated/ForeverBenchmark_streamGenerate_jmhTest.class" during copy operation configured with DuplicatesStrategy.WARN
+:jield-benchmark:jmh
+# JMH 1.18 (released 17 days ago)
+# VM version: JDK 1.8.0_112, VM 25.112-b15
+# VM invoker: C:\Program Files\Java\jdk1.8.0_112\jre\bin\java.exe
+# VM options: -Dfile.encoding=windows-1250 -Duser.country=US -Duser.language=en -Duser.variant
+# Warmup: 10 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: jield.benchmark.ForeverBenchmark.jield
+# Parameters: (limit = 1)
+
+# Run progress: 0.00% complete, ETA 00:10:00
+# Fork: 1 of 5
+# Warmup Iteration   1: 0.195 us/op
+# Warmup Iteration   2: 0.166 us/op
+# Warmup Iteration   3: 0.141 us/op
+# Warmup Iteration   4: 0.141 us/op
+# Warmup Iteration   5: 0.141 us/op
+# Warmup Iteration   6: 0.142 us/op
+# Warmup Iteration   7: 0.142 us/op
+# Warmup Iteration   8: 0.142 us/op
+# Warmup Iteration   9: 0.143 us/op
+# Warmup Iteration  10: 0.144 us/op
+Iteration   1: 0.140 us/op
+Iteration   2: 0.144 us/op
+Iteration   3: 0.141 us/op
+Iteration   4: 0.140 us/op
+Iteration   5: 0.140 us/op
+Iteration   6: 0.137 us/op
+Iteration   7: 0.138 us/op
+Iteration   8: 0.134 us/op
+Iteration   9: 0.138 us/op
+Iteration  10: 0.141 us/op
+
+# Run progress: 3.33% complete, ETA 00:09:50
+# Fork: 2 of 5
+# Warmup Iteration   1: 0.189 us/op
+# Warmup Iteration   2: 0.153 us/op
+# Warmup Iteration   3: 0.137 us/op
+# Warmup Iteration   4: 0.137 us/op
+# Warmup Iteration   5: 0.137 us/op
+# Warmup Iteration   6: 0.141 us/op
+# Warmup Iteration   7: 0.141 us/op
+# Warmup Iteration   8: 0.142 us/op
+# Warmup Iteration   9: 0.147 us/op
+# Warmup Iteration  10: 0.143 us/op
+Iteration   1: 0.141 us/op
+Iteration   2: 0.137 us/op
+Iteration   3: 0.142 us/op
+Iteration   4: 0.140 us/op
+Iteration   5: 0.139 us/op
+Iteration   6: 0.142 us/op
+Iteration   7: 0.138 us/op
+Iteration   8: 0.145 us/op
+Iteration   9: 0.139 us/op
+Iteration  10: 0.145 us/op
+
+# Run progress: 6.67% complete, ETA 00:09:29
+# Fork: 3 of 5
+# Warmup Iteration   1: 0.188 us/op
+# Warmup Iteration   2: 0.163 us/op
+# Warmup Iteration   3: 0.139 us/op
+# Warmup Iteration   4: 0.145 us/op
+# Warmup Iteration   5: 0.138 us/op
+# Warmup Iteration   6: 0.144 us/op
+# Warmup Iteration   7: 0.142 us/op
+# Warmup Iteration   8: 0.145 us/op
+# Warmup Iteration   9: 0.139 us/op
+# Warmup Iteration  10: 0.149 us/op
+Iteration   1: 0.141 us/op
+Iteration   2: 0.141 us/op
+Iteration   3: 0.143 us/op
+Iteration   4: 0.144 us/op
+Iteration   5: 0.150 us/op
+Iteration   6: 0.148 us/op
+Iteration   7: 0.143 us/op
+Iteration   8: 0.143 us/op
+Iteration   9: 0.144 us/op
+Iteration  10: 0.144 us/op
+
+# Run progress: 10.00% complete, ETA 00:09:09
+# Fork: 4 of 5
+# Warmup Iteration   1: 0.195 us/op
+# Warmup Iteration   2: 0.172 us/op
+# Warmup Iteration   3: 0.141 us/op
+# Warmup Iteration   4: 0.148 us/op
+# Warmup Iteration   5: 0.141 us/op
+# Warmup Iteration   6: 0.141 us/op
+# Warmup Iteration   7: 0.140 us/op
+# Warmup Iteration   8: 0.142 us/op
+# Warmup Iteration   9: 0.142 us/op
+# Warmup Iteration  10: 0.139 us/op
+Iteration   1: 0.140 us/op
+Iteration   2: 0.140 us/op
+Iteration   3: 0.140 us/op
+Iteration   4: 0.140 us/op
+Iteration   5: 0.140 us/op
+Iteration   6: 0.141 us/op
+Iteration   7: 0.143 us/op
+Iteration   8: 0.139 us/op
+Iteration   9: 0.142 us/op
+Iteration  10: 0.141 us/op
+
+# Run progress: 13.33% complete, ETA 00:08:49
+# Fork: 5 of 5
+# Warmup Iteration   1: 0.198 us/op
+# Warmup Iteration   2: 0.164 us/op
+# Warmup Iteration   3: 0.148 us/op
+# Warmup Iteration   4: 0.148 us/op
+# Warmup Iteration   5: 0.145 us/op
+# Warmup Iteration   6: 0.148 us/op
+# Warmup Iteration   7: 0.150 us/op
+# Warmup Iteration   8: 0.152 us/op
+# Warmup Iteration   9: 0.151 us/op
+# Warmup Iteration  10: 0.151 us/op
+Iteration   1: 0.146 us/op
+Iteration   2: 0.155 us/op
+Iteration   3: 0.150 us/op
+Iteration   4: 0.149 us/op
+Iteration   5: 0.146 us/op
+Iteration   6: 0.150 us/op
+Iteration   7: 0.141 us/op
+Iteration   8: 0.140 us/op
+Iteration   9: 0.142 us/op
+Iteration  10: 0.139 us/op
+
+
+Result "jield.benchmark.ForeverBenchmark.jield":
+  0.142 ±(99.9%) 0.002 us/op [Average]
+  (min, avg, max) = (0.134, 0.142, 0.155), stdev = 0.004
+  CI (99.9%): [0.140, 0.144] (assumes normal distribution)
+
+
+# JMH 1.18 (released 17 days ago)
+# VM version: JDK 1.8.0_112, VM 25.112-b15
+# VM invoker: C:\Program Files\Java\jdk1.8.0_112\jre\bin\java.exe
+# VM options: -Dfile.encoding=windows-1250 -Duser.country=US -Duser.language=en -Duser.variant
+# Warmup: 10 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: jield.benchmark.ForeverBenchmark.jield
+# Parameters: (limit = 10)
+
+# Run progress: 16.67% complete, ETA 00:08:28
+# Fork: 1 of 5
+# Warmup Iteration   1: 0.876 us/op
+# Warmup Iteration   2: 0.724 us/op
+# Warmup Iteration   3: 0.573 us/op
+# Warmup Iteration   4: 0.619 us/op
+# Warmup Iteration   5: 0.570 us/op
+# Warmup Iteration   6: 0.571 us/op
+# Warmup Iteration   7: 0.568 us/op
+# Warmup Iteration   8: 0.555 us/op
+# Warmup Iteration   9: 0.566 us/op
+# Warmup Iteration  10: 0.555 us/op
+Iteration   1: 0.559 us/op
+Iteration   2: 0.577 us/op
+Iteration   3: 0.560 us/op
+Iteration   4: 0.560 us/op
+Iteration   5: 0.560 us/op
+Iteration   6: 0.557 us/op
+Iteration   7: 0.571 us/op
+Iteration   8: 0.563 us/op
+Iteration   9: 0.587 us/op
+Iteration  10: 0.599 us/op
+
+# Run progress: 20.00% complete, ETA 00:08:08
+# Fork: 2 of 5
+# Warmup Iteration   1: 0.854 us/op
+# Warmup Iteration   2: 0.697 us/op
+# Warmup Iteration   3: 0.597 us/op
+# Warmup Iteration   4: 0.596 us/op
+# Warmup Iteration   5: 0.601 us/op
+# Warmup Iteration   6: 0.646 us/op
+# Warmup Iteration   7: 0.622 us/op
+# Warmup Iteration   8: 0.619 us/op
+# Warmup Iteration   9: 0.582 us/op
+# Warmup Iteration  10: 0.579 us/op
+Iteration   1: 0.561 us/op
+Iteration   2: 0.553 us/op
+Iteration   3: 0.552 us/op
+Iteration   4: 0.554 us/op
+Iteration   5: 0.552 us/op
+Iteration   6: 0.552 us/op
+Iteration   7: 0.558 us/op
+Iteration   8: 0.552 us/op
+Iteration   9: 0.555 us/op
+Iteration  10: 0.556 us/op
+
+# Run progress: 23.33% complete, ETA 00:07:48
+# Fork: 3 of 5
+# Warmup Iteration   1: 0.726 us/op
+# Warmup Iteration   2: 0.675 us/op
+# Warmup Iteration   3: 0.560 us/op
+# Warmup Iteration   4: 0.556 us/op
+# Warmup Iteration   5: 0.554 us/op
+# Warmup Iteration   6: 0.553 us/op
+# Warmup Iteration   7: 0.560 us/op
+# Warmup Iteration   8: 0.550 us/op
+# Warmup Iteration   9: 0.556 us/op
+# Warmup Iteration  10: 0.551 us/op
+Iteration   1: 0.554 us/op
+Iteration   2: 0.553 us/op
+Iteration   3: 0.549 us/op
+Iteration   4: 0.555 us/op
+Iteration   5: 0.549 us/op
+Iteration   6: 0.551 us/op
+Iteration   7: 0.552 us/op
+Iteration   8: 0.554 us/op
+Iteration   9: 0.555 us/op
+Iteration  10: 0.554 us/op
+
+# Run progress: 26.67% complete, ETA 00:07:28
+# Fork: 4 of 5
+# Warmup Iteration   1: 0.722 us/op
+# Warmup Iteration   2: 0.625 us/op
+# Warmup Iteration   3: 0.546 us/op
+# Warmup Iteration   4: 0.545 us/op
+# Warmup Iteration   5: 0.548 us/op
+# Warmup Iteration   6: 0.548 us/op
+# Warmup Iteration   7: 0.547 us/op
+# Warmup Iteration   8: 0.549 us/op
+# Warmup Iteration   9: 0.550 us/op
+# Warmup Iteration  10: 0.552 us/op
+Iteration   1: 0.547 us/op
+Iteration   2: 0.550 us/op
+Iteration   3: 0.548 us/op
+Iteration   4: 0.550 us/op
+Iteration   5: 0.548 us/op
+Iteration   6: 0.551 us/op
+Iteration   7: 0.551 us/op
+Iteration   8: 0.551 us/op
+Iteration   9: 0.549 us/op
+Iteration  10: 0.552 us/op
+
+# Run progress: 30.00% complete, ETA 00:07:07
+# Fork: 5 of 5
+# Warmup Iteration   1: 0.726 us/op
+# Warmup Iteration   2: 0.632 us/op
+# Warmup Iteration   3: 0.544 us/op
+# Warmup Iteration   4: 0.545 us/op
+# Warmup Iteration   5: 0.552 us/op
+# Warmup Iteration   6: 0.550 us/op
+# Warmup Iteration   7: 0.553 us/op
+# Warmup Iteration   8: 0.570 us/op
+# Warmup Iteration   9: 0.556 us/op
+# Warmup Iteration  10: 0.555 us/op
+Iteration   1: 0.553 us/op
+Iteration   2: 0.568 us/op
+Iteration   3: 0.554 us/op
+Iteration   4: 0.552 us/op
+Iteration   5: 0.550 us/op
+Iteration   6: 0.554 us/op
+Iteration   7: 0.550 us/op
+Iteration   8: 0.553 us/op
+Iteration   9: 0.556 us/op
+Iteration  10: 0.553 us/op
+
+
+Result "jield.benchmark.ForeverBenchmark.jield":
+  0.556 ±(99.9%) 0.005 us/op [Average]
+  (min, avg, max) = (0.547, 0.556, 0.599), stdev = 0.010
+  CI (99.9%): [0.551, 0.561] (assumes normal distribution)
+
+
+# JMH 1.18 (released 17 days ago)
+# VM version: JDK 1.8.0_112, VM 25.112-b15
+# VM invoker: C:\Program Files\Java\jdk1.8.0_112\jre\bin\java.exe
+# VM options: -Dfile.encoding=windows-1250 -Duser.country=US -Duser.language=en -Duser.variant
+# Warmup: 10 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: jield.benchmark.ForeverBenchmark.jield
+# Parameters: (limit = 100)
+
+# Run progress: 33.33% complete, ETA 00:06:47
+# Fork: 1 of 5
+# Warmup Iteration   1: 6.033 us/op
+# Warmup Iteration   2: 5.262 us/op
+# Warmup Iteration   3: 4.594 us/op
+# Warmup Iteration   4: 4.613 us/op
+# Warmup Iteration   5: 4.612 us/op
+# Warmup Iteration   6: 4.615 us/op
+# Warmup Iteration   7: 4.602 us/op
+# Warmup Iteration   8: 4.577 us/op
+# Warmup Iteration   9: 4.621 us/op
+# Warmup Iteration  10: 4.634 us/op
+Iteration   1: 4.604 us/op
+Iteration   2: 4.844 us/op
+Iteration   3: 4.688 us/op
+Iteration   4: 4.871 us/op
+Iteration   5: 4.717 us/op
+Iteration   6: 4.774 us/op
+Iteration   7: 4.628 us/op
+Iteration   8: 4.743 us/op
+Iteration   9: 4.658 us/op
+Iteration  10: 4.639 us/op
+
+# Run progress: 36.67% complete, ETA 00:06:26
+# Fork: 2 of 5
+# Warmup Iteration   1: 6.216 us/op
+# Warmup Iteration   2: 5.306 us/op
+# Warmup Iteration   3: 4.614 us/op
+# Warmup Iteration   4: 4.601 us/op
+# Warmup Iteration   5: 4.609 us/op
+# Warmup Iteration   6: 4.627 us/op
+# Warmup Iteration   7: 4.607 us/op
+# Warmup Iteration   8: 4.613 us/op
+# Warmup Iteration   9: 4.630 us/op
+# Warmup Iteration  10: 4.637 us/op
+Iteration   1: 4.655 us/op
+Iteration   2: 4.633 us/op
+Iteration   3: 4.638 us/op
+Iteration   4: 4.623 us/op
+Iteration   5: 4.630 us/op
+Iteration   6: 4.655 us/op
+Iteration   7: 4.627 us/op
+Iteration   8: 4.591 us/op
+Iteration   9: 4.620 us/op
+Iteration  10: 4.640 us/op
+
+# Run progress: 40.00% complete, ETA 00:06:06
+# Fork: 3 of 5
+# Warmup Iteration   1: 6.033 us/op
+# Warmup Iteration   2: 5.407 us/op
+# Warmup Iteration   3: 4.566 us/op
+# Warmup Iteration   4: 4.504 us/op
+# Warmup Iteration   5: 4.535 us/op
+# Warmup Iteration   6: 4.539 us/op
+# Warmup Iteration   7: 4.544 us/op
+# Warmup Iteration   8: 4.946 us/op
+# Warmup Iteration   9: 4.571 us/op
+# Warmup Iteration  10: 4.527 us/op
+Iteration   1: 4.519 us/op
+Iteration   2: 4.534 us/op
+Iteration   3: 4.537 us/op
+Iteration   4: 4.533 us/op
+Iteration   5: 4.582 us/op
+Iteration   6: 4.583 us/op
+Iteration   7: 4.525 us/op
+Iteration   8: 4.530 us/op
+Iteration   9: 4.553 us/op
+Iteration  10: 4.557 us/op
+
+# Run progress: 43.33% complete, ETA 00:05:46
+# Fork: 4 of 5
+# Warmup Iteration   1: 5.937 us/op
+# Warmup Iteration   2: 5.353 us/op
+# Warmup Iteration   3: 4.482 us/op
+# Warmup Iteration   4: 4.657 us/op
+# Warmup Iteration   5: 4.644 us/op
+# Warmup Iteration   6: 4.655 us/op
+# Warmup Iteration   7: 4.517 us/op
+# Warmup Iteration   8: 4.709 us/op
+# Warmup Iteration   9: 4.648 us/op
+# Warmup Iteration  10: 4.528 us/op
+Iteration   1: 4.509 us/op
+Iteration   2: 4.522 us/op
+Iteration   3: 4.644 us/op
+Iteration   4: 4.668 us/op
+Iteration   5: 4.630 us/op
+Iteration   6: 4.940 us/op
+Iteration   7: 5.468 us/op
+Iteration   8: 5.322 us/op
+Iteration   9: 5.305 us/op
+Iteration  10: 5.295 us/op
+
+# Run progress: 46.67% complete, ETA 00:05:25
+# Fork: 5 of 5
+# Warmup Iteration   1: 5.862 us/op
+# Warmup Iteration   2: 5.116 us/op
+# Warmup Iteration   3: 4.475 us/op
+# Warmup Iteration   4: 4.785 us/op
+# Warmup Iteration   5: 4.660 us/op
+# Warmup Iteration   6: 4.641 us/op
+# Warmup Iteration   7: 4.547 us/op
+# Warmup Iteration   8: 4.524 us/op
+# Warmup Iteration   9: 4.738 us/op
+# Warmup Iteration  10: 4.629 us/op
+Iteration   1: 4.675 us/op
+Iteration   2: 4.548 us/op
+Iteration   3: 4.542 us/op
+Iteration   4: 4.515 us/op
+Iteration   5: 4.496 us/op
+Iteration   6: 4.678 us/op
+Iteration   7: 4.515 us/op
+Iteration   8: 4.689 us/op
+Iteration   9: 4.753 us/op
+Iteration  10: 4.685 us/op
+
+
+Result "jield.benchmark.ForeverBenchmark.jield":
+  4.687 ±(99.9%) 0.109 us/op [Average]
+  (min, avg, max) = (4.496, 4.687, 5.468), stdev = 0.219
+  CI (99.9%): [4.578, 4.795] (assumes normal distribution)
+
+
+# JMH 1.18 (released 17 days ago)
+# VM version: JDK 1.8.0_112, VM 25.112-b15
+# VM invoker: C:\Program Files\Java\jdk1.8.0_112\jre\bin\java.exe
+# VM options: -Dfile.encoding=windows-1250 -Duser.country=US -Duser.language=en -Duser.variant
+# Warmup: 10 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: jield.benchmark.ForeverBenchmark.streamGenerate
+# Parameters: (limit = 1)
+
+# Run progress: 50.00% complete, ETA 00:05:05
+# Fork: 1 of 5
+# Warmup Iteration   1: 0.051 us/op
+# Warmup Iteration   2: 0.041 us/op
+# Warmup Iteration   3: 0.038 us/op
+# Warmup Iteration   4: 0.037 us/op
+# Warmup Iteration   5: 0.037 us/op
+# Warmup Iteration   6: 0.037 us/op
+# Warmup Iteration   7: 0.038 us/op
+# Warmup Iteration   8: 0.038 us/op
+# Warmup Iteration   9: 0.037 us/op
+# Warmup Iteration  10: 0.038 us/op
+Iteration   1: 0.036 us/op
+Iteration   2: 0.037 us/op
+Iteration   3: 0.041 us/op
+Iteration   4: 0.040 us/op
+Iteration   5: 0.039 us/op
+Iteration   6: 0.040 us/op
+Iteration   7: 0.041 us/op
+Iteration   8: 0.038 us/op
+Iteration   9: 0.039 us/op
+Iteration  10: 0.038 us/op
+
+# Run progress: 53.33% complete, ETA 00:04:45
+# Fork: 2 of 5
+# Warmup Iteration   1: 0.053 us/op
+# Warmup Iteration   2: 0.045 us/op
+# Warmup Iteration   3: 0.040 us/op
+# Warmup Iteration   4: 0.039 us/op
+# Warmup Iteration   5: 0.038 us/op
+# Warmup Iteration   6: 0.036 us/op
+# Warmup Iteration   7: 0.035 us/op
+# Warmup Iteration   8: 0.035 us/op
+# Warmup Iteration   9: 0.036 us/op
+# Warmup Iteration  10: 0.038 us/op
+Iteration   1: 0.038 us/op
+Iteration   2: 0.038 us/op
+Iteration   3: 0.037 us/op
+Iteration   4: 0.036 us/op
+Iteration   5: 0.037 us/op
+Iteration   6: 0.037 us/op
+Iteration   7: 0.038 us/op
+Iteration   8: 0.038 us/op
+Iteration   9: 0.037 us/op
+Iteration  10: 0.037 us/op
+
+# Run progress: 56.67% complete, ETA 00:04:24
+# Fork: 3 of 5
+# Warmup Iteration   1: 0.052 us/op
+# Warmup Iteration   2: 0.040 us/op
+# Warmup Iteration   3: 0.036 us/op
+# Warmup Iteration   4: 0.036 us/op
+# Warmup Iteration   5: 0.036 us/op
+# Warmup Iteration   6: 0.036 us/op
+# Warmup Iteration   7: 0.036 us/op
+# Warmup Iteration   8: 0.036 us/op
+# Warmup Iteration   9: 0.036 us/op
+# Warmup Iteration  10: 0.036 us/op
+Iteration   1: 0.038 us/op
+Iteration   2: 0.038 us/op
+Iteration   3: 0.038 us/op
+Iteration   4: 0.039 us/op
+Iteration   5: 0.036 us/op
+Iteration   6: 0.036 us/op
+Iteration   7: 0.038 us/op
+Iteration   8: 0.037 us/op
+Iteration   9: 0.038 us/op
+Iteration  10: 0.037 us/op
+
+# Run progress: 60.00% complete, ETA 00:04:04
+# Fork: 4 of 5
+# Warmup Iteration   1: 0.054 us/op
+# Warmup Iteration   2: 0.043 us/op
+# Warmup Iteration   3: 0.037 us/op
+# Warmup Iteration   4: 0.037 us/op
+# Warmup Iteration   5: 0.039 us/op
+# Warmup Iteration   6: 0.038 us/op
+# Warmup Iteration   7: 0.039 us/op
+# Warmup Iteration   8: 0.036 us/op
+# Warmup Iteration   9: 0.036 us/op
+# Warmup Iteration  10: 0.036 us/op
+Iteration   1: 0.036 us/op
+Iteration   2: 0.036 us/op
+Iteration   3: 0.036 us/op
+Iteration   4: 0.037 us/op
+Iteration   5: 0.036 us/op
+Iteration   6: 0.037 us/op
+Iteration   7: 0.036 us/op
+Iteration   8: 0.036 us/op
+Iteration   9: 0.035 us/op
+Iteration  10: 0.035 us/op
+
+# Run progress: 63.33% complete, ETA 00:03:43
+# Fork: 5 of 5
+# Warmup Iteration   1: 0.051 us/op
+# Warmup Iteration   2: 0.038 us/op
+# Warmup Iteration   3: 0.035 us/op
+# Warmup Iteration   4: 0.036 us/op
+# Warmup Iteration   5: 0.036 us/op
+# Warmup Iteration   6: 0.038 us/op
+# Warmup Iteration   7: 0.038 us/op
+# Warmup Iteration   8: 0.038 us/op
+# Warmup Iteration   9: 0.039 us/op
+# Warmup Iteration  10: 0.038 us/op
+Iteration   1: 0.038 us/op
+Iteration   2: 0.038 us/op
+Iteration   3: 0.038 us/op
+Iteration   4: 0.038 us/op
+Iteration   5: 0.038 us/op
+Iteration   6: 0.038 us/op
+Iteration   7: 0.038 us/op
+Iteration   8: 0.038 us/op
+Iteration   9: 0.038 us/op
+Iteration  10: 0.038 us/op
+
+
+Result "jield.benchmark.ForeverBenchmark.streamGenerate":
+  0.038 ±(99.9%) 0.001 us/op [Average]
+  (min, avg, max) = (0.035, 0.038, 0.041), stdev = 0.001
+  CI (99.9%): [0.037, 0.038] (assumes normal distribution)
+
+
+# JMH 1.18 (released 17 days ago)
+# VM version: JDK 1.8.0_112, VM 25.112-b15
+# VM invoker: C:\Program Files\Java\jdk1.8.0_112\jre\bin\java.exe
+# VM options: -Dfile.encoding=windows-1250 -Duser.country=US -Duser.language=en -Duser.variant
+# Warmup: 10 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: jield.benchmark.ForeverBenchmark.streamGenerate
+# Parameters: (limit = 10)
+
+# Run progress: 66.67% complete, ETA 00:03:23
+# Fork: 1 of 5
+# Warmup Iteration   1: 0.123 us/op
+# Warmup Iteration   2: 0.105 us/op
+# Warmup Iteration   3: 0.106 us/op
+# Warmup Iteration   4: 0.104 us/op
+# Warmup Iteration   5: 0.106 us/op
+# Warmup Iteration   6: 0.105 us/op
+# Warmup Iteration   7: 0.106 us/op
+# Warmup Iteration   8: 0.111 us/op
+# Warmup Iteration   9: 0.107 us/op
+# Warmup Iteration  10: 0.102 us/op
+Iteration   1: 0.102 us/op
+Iteration   2: 0.107 us/op
+Iteration   3: 0.107 us/op
+Iteration   4: 0.105 us/op
+Iteration   5: 0.106 us/op
+Iteration   6: 0.105 us/op
+Iteration   7: 0.105 us/op
+Iteration   8: 0.106 us/op
+Iteration   9: 0.105 us/op
+Iteration  10: 0.103 us/op
+
+# Run progress: 70.00% complete, ETA 00:03:03
+# Fork: 2 of 5
+# Warmup Iteration   1: 0.122 us/op
+# Warmup Iteration   2: 0.104 us/op
+# Warmup Iteration   3: 0.103 us/op
+# Warmup Iteration   4: 0.102 us/op
+# Warmup Iteration   5: 0.103 us/op
+# Warmup Iteration   6: 0.103 us/op
+# Warmup Iteration   7: 0.102 us/op
+# Warmup Iteration   8: 0.103 us/op
+# Warmup Iteration   9: 0.104 us/op
+# Warmup Iteration  10: 0.103 us/op
+Iteration   1: 0.102 us/op
+Iteration   2: 0.103 us/op
+Iteration   3: 0.102 us/op
+Iteration   4: 0.102 us/op
+Iteration   5: 0.103 us/op
+Iteration   6: 0.104 us/op
+Iteration   7: 0.106 us/op
+Iteration   8: 0.108 us/op
+Iteration   9: 0.099 us/op
+Iteration  10: 0.104 us/op
+
+# Run progress: 73.33% complete, ETA 00:02:42
+# Fork: 3 of 5
+# Warmup Iteration   1: 0.133 us/op
+# Warmup Iteration   2: 0.104 us/op
+# Warmup Iteration   3: 0.099 us/op
+# Warmup Iteration   4: 0.102 us/op
+# Warmup Iteration   5: 0.114 us/op
+# Warmup Iteration   6: 0.104 us/op
+# Warmup Iteration   7: 0.109 us/op
+# Warmup Iteration   8: 0.109 us/op
+# Warmup Iteration   9: 0.100 us/op
+# Warmup Iteration  10: 0.104 us/op
+Iteration   1: 0.102 us/op
+Iteration   2: 0.101 us/op
+Iteration   3: 0.111 us/op
+Iteration   4: 0.106 us/op
+Iteration   5: 0.103 us/op
+Iteration   6: 0.101 us/op
+Iteration   7: 0.098 us/op
+Iteration   8: 0.098 us/op
+Iteration   9: 0.099 us/op
+Iteration  10: 0.098 us/op
+
+# Run progress: 76.67% complete, ETA 00:02:22
+# Fork: 4 of 5
+# Warmup Iteration   1: 0.117 us/op
+# Warmup Iteration   2: 0.106 us/op
+# Warmup Iteration   3: 0.099 us/op
+# Warmup Iteration   4: 0.104 us/op
+# Warmup Iteration   5: 0.107 us/op
+# Warmup Iteration   6: 0.104 us/op
+# Warmup Iteration   7: 0.106 us/op
+# Warmup Iteration   8: 0.099 us/op
+# Warmup Iteration   9: 0.098 us/op
+# Warmup Iteration  10: 0.098 us/op
+Iteration   1: 0.098 us/op
+Iteration   2: 0.099 us/op
+Iteration   3: 0.099 us/op
+Iteration   4: 0.100 us/op
+Iteration   5: 0.100 us/op
+Iteration   6: 0.100 us/op
+Iteration   7: 0.107 us/op
+Iteration   8: 0.107 us/op
+Iteration   9: 0.106 us/op
+Iteration  10: 0.106 us/op
+
+# Run progress: 80.00% complete, ETA 00:02:02
+# Fork: 5 of 5
+# Warmup Iteration   1: 0.135 us/op
+# Warmup Iteration   2: 0.106 us/op
+# Warmup Iteration   3: 0.105 us/op
+# Warmup Iteration   4: 0.106 us/op
+# Warmup Iteration   5: 0.105 us/op
+# Warmup Iteration   6: 0.106 us/op
+# Warmup Iteration   7: 0.106 us/op
+# Warmup Iteration   8: 0.105 us/op
+# Warmup Iteration   9: 0.105 us/op
+# Warmup Iteration  10: 0.105 us/op
+Iteration   1: 0.106 us/op
+Iteration   2: 0.106 us/op
+Iteration   3: 0.106 us/op
+Iteration   4: 0.105 us/op
+Iteration   5: 0.105 us/op
+Iteration   6: 0.105 us/op
+Iteration   7: 0.105 us/op
+Iteration   8: 0.106 us/op
+Iteration   9: 0.106 us/op
+Iteration  10: 0.106 us/op
+
+
+Result "jield.benchmark.ForeverBenchmark.streamGenerate":
+  0.104 ±(99.9%) 0.002 us/op [Average]
+  (min, avg, max) = (0.098, 0.104, 0.111), stdev = 0.003
+  CI (99.9%): [0.102, 0.105] (assumes normal distribution)
+
+
+# JMH 1.18 (released 17 days ago)
+# VM version: JDK 1.8.0_112, VM 25.112-b15
+# VM invoker: C:\Program Files\Java\jdk1.8.0_112\jre\bin\java.exe
+# VM options: -Dfile.encoding=windows-1250 -Duser.country=US -Duser.language=en -Duser.variant
+# Warmup: 10 iterations, 1 s each
+# Measurement: 10 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Average time, time/op
+# Benchmark: jield.benchmark.ForeverBenchmark.streamGenerate
+# Parameters: (limit = 100)
+
+# Run progress: 83.33% complete, ETA 00:01:41
+# Fork: 1 of 5
+# Warmup Iteration   1: 0.814 us/op
+# Warmup Iteration   2: 0.798 us/op
+# Warmup Iteration   3: 0.782 us/op
+# Warmup Iteration   4: 0.793 us/op
+# Warmup Iteration   5: 0.795 us/op
+# Warmup Iteration   6: 0.788 us/op
+# Warmup Iteration   7: 0.789 us/op
+# Warmup Iteration   8: 0.789 us/op
+# Warmup Iteration   9: 0.777 us/op
+# Warmup Iteration  10: 0.725 us/op
+Iteration   1: 0.756 us/op
+Iteration   2: 0.746 us/op
+Iteration   3: 0.725 us/op
+Iteration   4: 0.816 us/op
+Iteration   5: 0.732 us/op
+Iteration   6: 0.785 us/op
+Iteration   7: 0.734 us/op
+Iteration   8: 0.754 us/op
+Iteration   9: 0.787 us/op
+Iteration  10: 0.759 us/op
+
+# Run progress: 86.67% complete, ETA 00:01:21
+# Fork: 2 of 5
+# Warmup Iteration   1: 0.761 us/op
+# Warmup Iteration   2: 0.741 us/op
+# Warmup Iteration   3: 0.739 us/op
+# Warmup Iteration   4: 0.753 us/op
+# Warmup Iteration   5: 0.736 us/op
+# Warmup Iteration   6: 0.736 us/op
+# Warmup Iteration   7: 0.728 us/op
+# Warmup Iteration   8: 0.725 us/op
+# Warmup Iteration   9: 0.733 us/op
+# Warmup Iteration  10: 0.766 us/op
+Iteration   1: 0.765 us/op
+Iteration   2: 0.770 us/op
+Iteration   3: 0.775 us/op
+Iteration   4: 0.768 us/op
+Iteration   5: 0.774 us/op
+Iteration   6: 0.778 us/op
+Iteration   7: 0.888 us/op
+Iteration   8: 0.843 us/op
+Iteration   9: 0.831 us/op
+Iteration  10: 0.789 us/op
+
+# Run progress: 90.00% complete, ETA 00:01:01
+# Fork: 3 of 5
+# Warmup Iteration   1: 0.786 us/op
+# Warmup Iteration   2: 0.728 us/op
+# Warmup Iteration   3: 0.722 us/op
+# Warmup Iteration   4: 0.761 us/op
+# Warmup Iteration   5: 0.727 us/op
+# Warmup Iteration   6: 0.730 us/op
+# Warmup Iteration   7: 0.763 us/op
+# Warmup Iteration   8: 0.739 us/op
+# Warmup Iteration   9: 0.731 us/op
+# Warmup Iteration  10: 0.767 us/op
+Iteration   1: 0.767 us/op
+Iteration   2: 0.762 us/op
+Iteration   3: 0.763 us/op
+Iteration   4: 0.760 us/op
+Iteration   5: 0.760 us/op
+Iteration   6: 0.774 us/op
+Iteration   7: 0.821 us/op
+Iteration   8: 0.777 us/op
+Iteration   9: 0.771 us/op
+Iteration  10: 0.768 us/op
+
+# Run progress: 93.33% complete, ETA 00:00:40
+# Fork: 4 of 5
+# Warmup Iteration   1: 0.793 us/op
+# Warmup Iteration   2: 0.775 us/op
+# Warmup Iteration   3: 0.744 us/op
+# Warmup Iteration   4: 0.744 us/op
+# Warmup Iteration   5: 0.740 us/op
+# Warmup Iteration   6: 0.754 us/op
+# Warmup Iteration   7: 0.783 us/op
+# Warmup Iteration   8: 0.761 us/op
+# Warmup Iteration   9: 0.761 us/op
+# Warmup Iteration  10: 0.760 us/op
+Iteration   1: 0.760 us/op
+Iteration   2: 0.764 us/op
+Iteration   3: 0.764 us/op
+Iteration   4: 0.761 us/op
+Iteration   5: 0.762 us/op
+Iteration   6: 0.759 us/op
+Iteration   7: 0.771 us/op
+Iteration   8: 0.762 us/op
+Iteration   9: 0.794 us/op
+Iteration  10: 0.798 us/op
+
+# Run progress: 96.67% complete, ETA 00:00:20
+# Fork: 5 of 5
+# Warmup Iteration   1: 0.794 us/op
+# Warmup Iteration   2: 0.744 us/op
+# Warmup Iteration   3: 0.764 us/op
+# Warmup Iteration   4: 0.764 us/op
+# Warmup Iteration   5: 0.759 us/op
+# Warmup Iteration   6: 0.761 us/op
+# Warmup Iteration   7: 0.761 us/op
+# Warmup Iteration   8: 0.764 us/op
+# Warmup Iteration   9: 0.761 us/op
+# Warmup Iteration  10: 0.760 us/op
+Iteration   1: 0.758 us/op
+Iteration   2: 0.763 us/op
+Iteration   3: 0.762 us/op
+Iteration   4: 0.762 us/op
+Iteration   5: 0.768 us/op
+Iteration   6: 0.762 us/op
+Iteration   7: 0.767 us/op
+Iteration   8: 0.761 us/op
+Iteration   9: 0.744 us/op
+Iteration  10: 0.742 us/op
+
+
+Result "jield.benchmark.ForeverBenchmark.streamGenerate":
+  0.772 ±(99.9%) 0.014 us/op [Average]
+  (min, avg, max) = (0.725, 0.772, 0.888), stdev = 0.028
+  CI (99.9%): [0.758, 0.785] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:10:10
+
+Benchmark                        (limit)  Mode  Cnt  Score   Error  Units
+ForeverBenchmark.jield                 1  avgt   50  0.142 ± 0.002  us/op
+ForeverBenchmark.jield                10  avgt   50  0.556 ± 0.005  us/op
+ForeverBenchmark.jield               100  avgt   50  4.687 ± 0.109  us/op
+ForeverBenchmark.streamGenerate        1  avgt   50  0.038 ± 0.001  us/op
+ForeverBenchmark.streamGenerate       10  avgt   50  0.104 ± 0.002  us/op
+ForeverBenchmark.streamGenerate      100  avgt   50  0.772 ± 0.014  us/op
+
+Benchmark result is saved to build\reports\jmh\results.txt
+
+BUILD SUCCESSFUL
+
+Total time: 10 mins 18.498 secs
