@@ -1,0 +1,19 @@
+Benchmark                    (each)  (times)  Mode  Cnt     Score    Error  Units
+RepBenchmark.jield                1        1  avgt   50     0.542 ±  0.013  us/op
+RepBenchmark.jield                1       10  avgt   50     4.653 ±  0.100  us/op
+RepBenchmark.jield                1      100  avgt   50    44.855 ±  0.455  us/op
+RepBenchmark.jield               10        1  avgt   50     2.164 ±  0.030  us/op
+RepBenchmark.jield               10       10  avgt   50    20.481 ±  0.287  us/op
+RepBenchmark.jield               10      100  avgt   50   203.088 ±  3.929  us/op
+RepBenchmark.jield              100        1  avgt   50    18.727 ±  0.700  us/op
+RepBenchmark.jield              100       10  avgt   50   183.869 ±  4.305  us/op
+RepBenchmark.jield              100      100  avgt   50  1845.712 ± 50.239  us/op
+RepBenchmark.streamGenerate       1        1  avgt   50     0.291 ±  0.006  us/op
+RepBenchmark.streamGenerate       1       10  avgt   50     2.372 ±  0.055  us/op
+RepBenchmark.streamGenerate       1      100  avgt   50    22.750 ±  0.825  us/op
+RepBenchmark.streamGenerate      10        1  avgt   50     0.519 ±  0.012  us/op
+RepBenchmark.streamGenerate      10       10  avgt   50     4.459 ±  0.131  us/op
+RepBenchmark.streamGenerate      10      100  avgt   50    44.057 ±  1.257  us/op
+RepBenchmark.streamGenerate     100        1  avgt   50     2.666 ±  0.076  us/op
+RepBenchmark.streamGenerate     100       10  avgt   50    24.469 ±  0.500  us/op
+RepBenchmark.streamGenerate     100      100  avgt   50   245.874 ±  5.980  us/op

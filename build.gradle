@@ -1,0 +1,61 @@
+description = 'Jield - Generators for Java'
+
+buildscript {
+  repositories {
+    jcenter()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "me.champeau.gradle:jmh-gradle-plugin:0.3.1"
+  }
+}
+
+allprojects {
+  group = 'jield'
+  version = '0.1.0'
+}
+
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'idea'
+
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+
+  dependencies {
+    compile files("${System.properties['java.home']}/../lib/tools.jar")
+  }
+
+  repositories {
+    mavenCentral()
+  }
+}
+
+project(':jield-examples') {
+  compileJava {
+    options.compilerArgs.addAll(['-processor', 'jield.apt.JieldProcessor'])
+  }
+
+  dependencies {
+    compile project(':jield-core')
+  }
+}
+
+project(':jield-benchmark') {
+  apply plugin: "me.champeau.gradle.jmh"
+
+  jmh {
+    duplicateClassesStrategy = 'warn'
+    include = ".*"
+  }
+
+  dependencies {
+    jmh 'org.openjdk.jmh:jmh-core:1.18'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.18'
+
+    jmh project(':jield-core')
+    jmh project(':jield-examples')
+  }
+}
